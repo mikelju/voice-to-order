@@ -1,0 +1,30 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Temporales
+.tmp/
+*.pyc
+__pycache__/
+
+# Credenciales
+credentials.json
+token.json
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (si aplica)
+node_modules/
+dist/
+
+# Python (si aplica)
+venv/
+.venv/
+*.egg-info/
