@@ -1,0 +1,23 @@
+name: voice-to-order
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: vto-db
+    environment:
+      POSTGRES_USER: vto
+      POSTGRES_PASSWORD: vto
+      POSTGRES_DB: vto
+    ports:
+      - "5433:5432"
+    volumes:
+      - vto_pgdata:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vto -d vto"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  vto_pgdata:
