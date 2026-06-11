@@ -97,3 +97,27 @@ def test_terms_sweep_clean_passes(tmp_path):
     terms = tmp_path / "terms.txt"
     terms.write_text("SecretClientName\nOtherCompany\n", encoding="utf-8")
     assert run(tmp_path / "data", "--terms", str(terms)).returncode == 0
+
+
+# --- fix-1: structural CONTACTO gate ---
+
+def test_contact_row_with_name_fails(tmp_path):
+    bad = GOOD_CATALOG + "ART-aaaaaaaaaa,CONTACTO: Nombre Apellido - [phone] -llamar-,\n"
+    write_data(tmp_path / "data", catalog=bad)
+    proc = run(tmp_path / "data")
+    assert proc.returncode == 1
+    assert "CONTACTO" in proc.stdout
+
+
+def test_contact_row_sanitized_passes(tmp_path):
+    ok = GOOD_CATALOG + ("ART-aaaaaaaaaa,CONTACTO: [person] [phone]  "
+                         "-llamar en horario de 7:00h a 15:00h-,\n")
+    write_data(tmp_path / "data", catalog=ok)
+    proc = run(tmp_path / "data")
+    assert proc.returncode == 0, proc.stdout
+
+
+def test_spaced_phone_in_catalog_fails(tmp_path):
+    bad = GOOD_CATALOG + "ART-aaaaaaaaaa,CONTACTO: [person] 620 51 55 59,\n"
+    write_data(tmp_path / "data", catalog=bad)
+    assert run(tmp_path / "data").returncode == 1

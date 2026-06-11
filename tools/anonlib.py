@@ -23,8 +23,21 @@ ORDER_REF_RE = re.compile(
     r"|\b\d{1,2}(?:-\d{1,2}){2,}\b"          # 11-3-6-6
 )
 MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
-# Spanish mobile/landline numbers as found in real admin rows
-PHONE_RE = re.compile(r"\b[679]\d{8}\b")
+# Spanish mobile/landline numbers as found in real admin rows. fix-1: besides 9
+# contiguous digits, capture the common spaced/dotted groupings (3-3-3 and 3-2-2-2);
+# over-matching a technical spec is acceptable in exchange for not leaking a phone.
+PHONE_RE = re.compile(
+    r"\b[679]\d{2}[ .]?\d{3}[ .]?\d{3}\b"        # 696719831 / 638 361 923 / 696.719.831
+    r"|\b[679]\d{2}[ .]?\d{2}[ .]?\d{2}[ .]?\d{2}\b"  # 620 51 55 59
+)
+# fix-1: structural rule for catalog admin rows starting with "CONTACTO:". In those
+# rows every capitalized/name-like word run is a person, role or company name (the
+# operational text "llamar en horario..." is lowercase) -> tokenize them all.
+CONTACT_START_RE = re.compile(r"^\s*CONTACTO\b:?\s*", re.IGNORECASE)
+NAME_RUN_RE = re.compile(
+    r"\b[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ]*"
+    r"(?:[ \-]+(?:de|del|la|el|y|[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ]*))*\b"
+)
 
 # Uppercase domain vocabulary that is NOT a proper noun (for the review report).
 # The dataset's dictated text is Spanish plumbing/HVAC jargon.
@@ -83,9 +96,26 @@ def sanitize_text(text: str, replacements: list[tuple[str, str]],
         for variant in {term, _strip_accents(term)}:
             out = re.sub(re.escape(variant), token, out, flags=re.IGNORECASE)
     out = PHONE_RE.sub("[phone]", out)
+    m = CONTACT_START_RE.match(out)
+    if m:
+        rest = NAME_RUN_RE.sub(_contact_name_repl, out[m.end():])
+        rest = re.sub(r"\[person\](?:[ ,\-]+\[person\])+", "[person]", rest)
+        out = "CONTACTO: " + rest
     if order_refs:
         out = ORDER_REF_RE.sub("[order-ref]", out)
     return out
+
+
+_NAME_CONNECTORS = {"de", "del", "la", "el", "y"}
+
+
+def _contact_name_repl(m: "re.Match[str]") -> str:
+    """Replace a name-like run in an admin row, except pure domain vocabulary
+    (technical norms like 'DIN' must survive)."""
+    words = re.split(r"[ \-]+", m.group(0))
+    if all(w.upper() in DOMAIN_UPPER or w.lower() in _NAME_CONNECTORS for w in words if w):
+        return m.group(0)
+    return "[person]"
 
 
 def to_month(date_str: str) -> str:

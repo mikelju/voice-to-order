@@ -1,5 +1,6 @@
 # tests/tools/test_anonlib.py
 """Tests for the pure anonymization functions. Synthetic fixtures ONLY."""
+import re
 import sys
 from pathlib import Path
 
@@ -71,6 +72,55 @@ def test_sanitize_keeps_measures():
     # typical dictated measures must NOT be touched
     s = "24 tornillos allen metrica 10x25 inox DN50 M10"
     assert sanitize_text(s, []) == s
+
+
+def test_sanitize_spaced_phones():
+    # fix-1: spaced/dotted phone groupings must be tokenized too
+    cases = [
+        "CONTACTO: ALGUIEN 620 51 55 59  -llamar en horario-",
+        "aviso al 638 361 923 antes de entregar",
+        "telefono 696.719.831 puesto",
+        "movil 671234567 directo",
+    ]
+    for s in cases:
+        out = sanitize_text(s, [])
+        assert "[phone]" in out, s
+        assert not re.search(r"[679]\d{2}[ .]?\d{2,3}[ .]?\d{2}[ .]?\d{0,3}\d", out), out
+
+
+def test_sanitize_keeps_technical_numbers_not_phones():
+    # DIN/UNE specs and measures must survive the extended phone rule
+    s = "JUNTA DIN DN50 130 grados 10x25 M10 PN30 UNE 19702"
+    assert sanitize_text(s, [], order_refs=False) == s
+
+
+def test_sanitize_contact_rows_strip_names():
+    # fix-1: any name after CONTACTO is structurally replaced by [person]
+    out = sanitize_text(
+        "CONTACTO: NOMBRE APELLIDO - 628 32 86 21  -llamar en horario de 7:00h a 15:00h-",
+        [], order_refs=False)
+    assert "NOMBRE" not in out and "APELLIDO" not in out
+    assert "[person]" in out and "[phone]" in out
+
+
+def test_sanitize_contact_rows_stop_at_existing_tokens():
+    out = sanitize_text("CONTACTO: NOMBRE [customer] 620 51 55 59", [], order_refs=False)
+    assert "NOMBRE" not in out
+    assert "[customer]" in out and "[person]" in out and "[phone]" in out
+
+
+def test_sanitize_contact_rows_name_after_phone():
+    # fix-1: name-like runs anywhere in an admin row (e.g. role + village in parens)
+    out = sanitize_text("CONTACTO: NOMBRE 620 51 55 59 (Cargo Valle de Sitio)",
+                        [], order_refs=False)
+    assert "Cargo" not in out and "Valle" not in out and "Sitio" not in out
+    assert "([person])" in out
+
+
+def test_sanitize_contact_only_for_admin_rows():
+    # technical rows containing the word CONTACTO must NOT be touched
+    s = "ADHESIVO DE CONTACTO 5L"
+    assert sanitize_text(s, [], order_refs=False) == s
 
 
 def test_load_replacements_longest_first(tmp_path):

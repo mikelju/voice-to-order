@@ -23,7 +23,10 @@ import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from anonlib import ID_TOKEN_RE, MONTH_RE, ORDER_REF_RE, PHONE_RE
+from anonlib import DOMAIN_UPPER, ID_TOKEN_RE, MONTH_RE, ORDER_REF_RE, PHONE_RE
+
+ANON_TOKEN_RE = re.compile(r"\[(?:person|phone|customer|supplier|site|order-ref)\]")
+NAME_LIKE_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}\b|\b[A-ZÁÉÍÓÚÑ]{3,}\b")
 
 SECRET_PATTERNS = [
     (re.compile(r"AKIA[0-9A-Z]{16}"), "AWS key"),
@@ -99,6 +102,26 @@ def check_catalog(path: Path, r: Report) -> set[str]:
     r.add(dup == 0, "catalog: ids are unique", f"{dup} duplicates")
     r.add(bad_month == 0, "catalog: dates are YYYY-MM only", f"{bad_month} invalid")
     return ids
+
+
+def check_contact_rows(path: Path, r: Report) -> None:
+    """fix-1: admin rows starting with "CONTACTO" may only keep [person]/[phone] tokens
+    and lowercase operational text - any surviving name-like word fails the gate.
+    (Technical rows merely containing the word, e.g. "ADHESIVO DE CONTACTO", are fine.)"""
+    if not path.is_file():
+        return
+    hits = 0
+    with open(path, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            desc = row.get("articulo", "")
+            if not re.match(r"^\s*CONTACTO\b", desc, re.IGNORECASE):
+                continue
+            rest = ANON_TOKEN_RE.sub(" ", desc)
+            rest = re.sub(r"\bCONTACTO\b:?", " ", rest, flags=re.IGNORECASE)
+            for w in NAME_LIKE_RE.findall(rest):
+                if w.upper() not in DOMAIN_UPPER:
+                    hits += 1
+    r.add(hits == 0, "catalog: CONTACTO rows fully tokenized", f"{hits} name-like leftovers")
 
 
 def check_historical(path: Path, catalog_ids: set[str], r: Report) -> None:
@@ -213,6 +236,7 @@ def main() -> None:
     print(f"Verifying anonymization of {data}\n")
 
     catalog_ids = check_catalog(data / "catalog.csv", r)
+    check_contact_rows(data / "catalog.csv", r)
     check_historical(data / "historical.csv", catalog_ids, r)
     check_pairs(data / "extraction_pairs.jsonl", r)
     check_secrets_and_emails(iter_text_files(data), r, "data")
