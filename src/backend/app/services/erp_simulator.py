@@ -47,11 +47,15 @@ class ErpSimulator:
             payload = {"IdParte": int(order_id), "Lineas": lineas}
         except (KeyError, TypeError, ValueError) as exc:
             return False, f"Payload de ERP inválido: {exc}"
-        out_dir = Path(settings.ERP_DIR)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_file = out_dir / f"order_{order_id}_{int(time.time())}.json"
-        out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
-                            encoding="utf-8")
+        try:
+            out_dir = Path(settings.ERP_DIR)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out_file = out_dir / f"order_{order_id}_{int(time.time())}.json"
+            out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                                encoding="utf-8")
+        except OSError as exc:   # review H6: channel failure -> (False, msg), never 500
+            logger.exception("Simulated ERP write failed")
+            return False, f"Fallo del canal ERP simulado: {exc}"
         logger.info("Simulated ERP delivery", extra={"file": str(out_file)})
         return True, f"Pedido registrado en el ERP simulado ({out_file.name})"
 

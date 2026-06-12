@@ -14,6 +14,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from ..core.config import settings
+
 logger = logging.getLogger(__name__)
 
 CATALOG_TABLE = "catalogo"
@@ -38,7 +40,12 @@ class PgVectorSearcher:
                              count: int = 10) -> list[dict]:
         vec = await self._embedder.embed_query(query_text)
         if vec is None:
-            return await self._search_catalog_trgm(query_text, count)
+            # demo: queries without a precomputed vector fall back to pg_trgm so the
+            # demo never errors. Real mode keeps the original semantics: failure -> []
+            # (review H2: a live-embedding outage must not silently change Score scale).
+            if settings.APP_MODE == "demo":
+                return await self._search_catalog_trgm(query_text, count)
+            return []
         try:
             async with self._pool.connection() as conn:
                 cur = await conn.execute(
@@ -57,7 +64,9 @@ class PgVectorSearcher:
                                 count: int = 5) -> list[dict]:
         vec = await self._embedder.embed_query(query_text)
         if vec is None:
-            return await self._search_historical_trgm(query_text, count, threshold)
+            if settings.APP_MODE == "demo":
+                return await self._search_historical_trgm(query_text, count)
+            return []
         try:
             async with self._pool.connection() as conn:
                 cur = await conn.execute(
@@ -92,12 +101,13 @@ class PgVectorSearcher:
     async def warmup(self) -> None:
         """Touch both HNSW indexes so they sit in shared_buffers (ported)."""
         try:
-            zero = _vec_literal([0.0] * 256)
+            # review H8: cosine distance vs the zero vector is NaN; use a unit vector
+            probe = _vec_literal([1.0] + [0.0] * 255)
             async with self._pool.connection() as conn:
                 await conn.execute(
-                    "SELECT 1 FROM buscar_articulos(%s::vector, 0.99, 1)", (zero,))
+                    "SELECT 1 FROM buscar_articulos(%s::vector, 0.99, 1)", (probe,))
                 await conn.execute(
-                    "SELECT 1 FROM buscar_historicos(%s::vector, 0.99, 1)", (zero,))
+                    "SELECT 1 FROM buscar_historicos(%s::vector, 0.99, 1)", (probe,))
             logger.info("HNSW warmup done")
         except Exception:
             logger.warning("HNSW warmup failed (non-fatal)")
@@ -123,8 +133,9 @@ class PgVectorSearcher:
             logger.exception("trigram catalog fallback failed")
             return []
 
-    async def _search_historical_trgm(self, query_text: str, count: int,
-                                      threshold: float) -> list[dict]:
+    async def _search_historical_trgm(self, query_text: str, count: int) -> list[dict]:
+        # NOTE: the vector thresholds (0.75/0.5, cosine) are not comparable to trigram
+        # similarity; the fallback uses its own floor (TRGM_SIM_THRESHOLD).
         logger.info("trigram fallback (historical)", extra={"query": query_text[:60]})
         try:
             async with self._pool.connection() as conn:

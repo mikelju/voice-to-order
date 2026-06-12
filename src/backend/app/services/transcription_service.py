@@ -39,7 +39,8 @@ async def transcribe_audio_service(clients: dict[str, Any], audio_file_content: 
         logger.info("Demo replay transcription", extra={"recording_id": rid})
         return pair["transcription"], rid
 
-    return await _transcribe_real(audio_file_content, filename), None
+    text = await _transcribe_real(audio_file_content, filename)
+    return None if text is None else (text, None)
 
 
 async def _transcribe_real(audio_file_content: bytes, filename: str) -> Optional[str]:

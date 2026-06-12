@@ -44,6 +44,8 @@ class ReplayStore:
     def id_for_bytes(self, content: bytes) -> int:
         """Deterministic recording selection for an arbitrary demo upload."""
         import hashlib
+        if not self._pairs:   # review H4: empty store must not ZeroDivisionError
+            raise ValueError("Replay store is empty (data/extraction_pairs.jsonl)")
         digest = hashlib.sha256(content or b"demo").digest()
         return int.from_bytes(digest[:4], "big") % len(self._pairs)
 

@@ -51,6 +51,13 @@ async def process_audio_order(request: Request,
     if searcher:
         request.app.state.warmup_task = asyncio.create_task(searcher.warmup())
 
+    # review H5: an out-of-range recording_id is a client error, not a 500
+    store = clients.get("replay")
+    if recording_id is not None and store is not None and store.get(recording_id) is None:
+        raise HTTPException(status_code=400,
+                            detail=f"recording_id {recording_id} fuera de rango "
+                                   f"(0..{len(store) - 1}).")
+
     try:
         content = await audio_file.read()
         transcribed = await transcribe_audio_service(
