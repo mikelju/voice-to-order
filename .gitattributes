@@ -1,0 +1,4 @@
+# Embedding vectors are raw float32 - never let git touch line endings
+*.f32 binary
+# Keep the ids files byte-stable across platforms (format companions of .f32)
+*.ids.txt text eol=lf
