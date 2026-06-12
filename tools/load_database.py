@@ -30,9 +30,46 @@ def month_to_date(month: str) -> str | None:
     return f"{month}-01" if month else None
 
 
+def vec_lit(vec: list[float]) -> str:
+    return "[" + ",".join(repr(float(x)) for x in vec) + "]"
+
+
+def load_embeddings(conn: psycopg.Connection, data: Path) -> None:
+    """Load data/embeddings/ (Phase 4) when present; quiet skip otherwise."""
+    emb_dir = data / "embeddings"
+    if not (emb_dir / "catalog.f32").is_file():
+        print("[OK] data/embeddings/ not present - skipping (Phase 4 generates it)")
+        return
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from emblib import read_embeddings
+
+    with conn.cursor() as cur:
+        ids, vecs = read_embeddings(emb_dir / "catalog")
+        with cur.copy("COPY embeddings (id_articulo, embedding) FROM STDIN") as copy:
+            for art_id, vec in zip(ids, vecs):
+                copy.write_row((art_id, vec_lit(vec)))
+
+        texts, vecs = read_embeddings(emb_dir / "historical")
+        by_text = dict(zip(texts, vecs))
+        cur.execute("SELECT id, user_text FROM historico_pedidos")
+        rows = cur.fetchall()
+        with cur.copy("COPY historico_embeddings (historico_id, embedding) "
+                      "FROM STDIN") as copy:
+            for hist_id, user_text in rows:
+                vec = by_text.get(user_text)
+                if vec is not None:
+                    copy.write_row((hist_id, vec_lit(vec)))
+
+        queries, vecs = read_embeddings(emb_dir / "queries")
+        with cur.copy("COPY query_embeddings (query_text, embedding) FROM STDIN") as copy:
+            for query, vec in zip(queries, vecs):
+                copy.write_row((query, vec_lit(vec)))
+
+
 def load(conn: psycopg.Connection, data: Path) -> None:
     with conn.cursor() as cur:
-        cur.execute("TRUNCATE historico_embeddings, historico_pedidos, embeddings, catalogo")
+        cur.execute("TRUNCATE query_embeddings, historico_embeddings, historico_pedidos, "
+                    "embeddings, catalogo")
 
         with open(data / "catalog.csv", encoding="utf-8", newline="") as f, \
                 cur.copy("COPY catalogo (id_articulo, articulo, fecha_ultima_compra) "
@@ -53,7 +90,8 @@ def load(conn: psycopg.Connection, data: Path) -> None:
 def counts(conn: psycopg.Connection) -> dict[str, int]:
     out = {}
     with conn.cursor() as cur:
-        for table in ("catalogo", "historico_pedidos", "embeddings", "historico_embeddings"):
+        for table in ("catalogo", "historico_pedidos", "embeddings",
+                      "historico_embeddings", "query_embeddings"):
             cur.execute(f"SELECT count(*) FROM {table}")  # fixed identifier set, not user input
             out[table] = cur.fetchone()[0]
     return out
@@ -76,6 +114,7 @@ def main() -> None:
     with conn:
         if not args.check:
             load(conn, Path(args.data))
+            load_embeddings(conn, Path(args.data))
         for table, n in counts(conn).items():
             print(f"[OK] {table}: {n} rows")
 
