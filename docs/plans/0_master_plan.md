@@ -74,7 +74,7 @@ docs/plans/
 | 2 | Local database (Postgres+pgvector, schema, CTE functions) | Done | Done |
 | 3 | FastAPI backend (full pipeline in demo mode) | Done | Done¹ |
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
-| 5 | React frontend | Pending | Pending |
+| 5 | React frontend | Done | Done¹ |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Pending | Pending |
 | 7 | Security audit + public README + release gate | Pending | Pending |
 
