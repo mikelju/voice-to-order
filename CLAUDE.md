@@ -25,14 +25,15 @@ article descriptions are Spanish by nature — kept verbatim as evidence).
 
 ## Development commands
 
-_(Completed as each phase lands; planned:)_
-
 ```bash
-docker-compose up -d                          # Local Postgres+pgvector
+docker-compose -f db/docker-compose.yml up -d # Local Postgres+pgvector (port 5433)
 python tools/load_database.py                 # Load data/ into the DB
-uvicorn src.backend.app.main:app --reload     # Backend (dev)
-npm run dev                                   # Frontend (src/frontend)
-pytest                                        # Tests
+python tools/apply_sql.py                     # Re-apply functions/phase SQL to a live DB
+python serve.py                               # Backend dev server, port 8000 (8010 if busy)
+                                              #   (NOT plain `uvicorn ...`: psycopg async
+                                              #    needs a selector loop on Windows)
+npm run dev                                   # Frontend (src/frontend) — Phase 5
+pytest                                        # Tests (DB tests skip if the DB is down)
 python tools/verify_anonymization.py          # Anonymization gate over data/
 ```
 

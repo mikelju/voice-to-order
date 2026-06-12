@@ -1,3 +1,18 @@
-# Project tooling dependencies (backend deps land with Phase 3)
-psycopg[binary]>=3.1     # Postgres driver (loader + integration tests)
-pytest>=8.0              # test runner
+# Backend (Phase 3)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic-settings>=2.4
+python-multipart>=0.0.9
+python-dotenv>=1.0
+reportlab>=4.0
+psycopg[binary]>=3.1       # Postgres driver (loader + integration tests + backend)
+psycopg-pool>=3.2          # async connection pool
+
+# Real mode (Phase 4 embeddings / Phase 6 live models)
+openai>=1.40
+google-genai>=1.0
+
+# Tests
+pytest>=8.0
+pytest-asyncio>=0.24
+httpx>=0.27

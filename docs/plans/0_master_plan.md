@@ -72,7 +72,7 @@ docs/plans/
 |------|--------|------|--------|
 | 1 | Anonymized dataset + verification | Done | Done |
 | 2 | Local database (Postgres+pgvector, schema, CTE functions) | Done | Done |
-| 3 | FastAPI backend (full pipeline in demo mode) | Pending | Pending |
+| 3 | FastAPI backend (full pipeline in demo mode) | Done | Done¹ |
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Pending | Pending |
 | 5 | React frontend | Pending | Pending |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Pending | Pending |
@@ -103,16 +103,19 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 - [x] `tools/load_database.py` — loads `data/` into the DB
 - [x] Integration tests against the local DB
 
+¹ Phase-3 security audit explicitly deferred to the Phase-7 `/8-audit full` release gate
+(single audit covers backend+frontend+tools before the public push; decision recorded here).
+
 ## Phase 3: FastAPI backend (full demo mode)
 
 **Goal:** the 7-step flow runs end-to-end locally with no API keys.
 
-- [ ] Ported services: transcription (demo: replay), extraction (demo: replay of recorded pairs),
+- [x] Ported services: transcription (demo: replay), extraction (demo: replay of recorded pairs),
       search (real against the DB: gather + semaphores + fallback), delivery (real PDF + simulated
       ERP/email with status lights + `SIMULATE_FAILURE`)
-- [ ] Endpoints: process-audio / search-articles / finalize / send
-- [ ] Learned memory: history upsert on confirmation
-- [ ] Per-service tests + flow test
+- [x] Endpoints: process-audio / search-articles / finalize / send (+ GET /demo/recordings)
+- [x] Learned memory: history upsert on confirmation (both modes — documented deviation)
+- [x] Per-service tests + flow test (106 tests; E2E demo + chaos run)
 
 ## Phase 4: Precomputed embeddings
 
