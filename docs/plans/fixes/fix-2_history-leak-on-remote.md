@@ -1,8 +1,14 @@
-# Fix 2: real term ("[customer]") in public git history — REMEDIATION PENDING (author decision)
+# Fix 2: real term ("[customer]") in public git history — RISK ACCEPTED by the author
 
 > One-off corrective. Affects Phase 1/Phase 7 (anonymization release gate).
-> **Status: NOT applied — requires the author's explicit go-ahead (destructive +
-> outward-facing). The repository must not be treated as clean until this is resolved.**
+> **Status: WON'T FIX (accepted risk). 2026-06-13 — the author reviewed the finding and
+> decided the exposure is acceptable: "[customer]" is a company name (not personal data;
+> person names and phone numbers WERE sanitized by fix-1), and rewriting public history
+> is not worth the cost here. No history rewrite / force-push will be performed.**
+>
+> The working tree stays clean (the term is in the external replacements/terms lists, so
+> any dataset regeneration re-sanitizes it). Recorded for traceability per the framework's
+> "explicit decision to defer with justification" rule.
 
 ## Bug description
 

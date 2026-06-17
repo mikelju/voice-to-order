@@ -76,7 +76,7 @@ docs/plans/
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
 | 5 | React frontend | Done | Done¹ |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Done | Done |
-| 7 | Security audit + public README + release gate | Done | Blocked² (history leak on remote) |
+| 7 | Security audit + public README + release gate | Done | Done² (history leak: risk accepted) |
 
 ---
 
@@ -159,10 +159,11 @@ the repo **only** in anonymized form, with automated, repeatable verification.
       structural gate and the working-tree `--terms` sweep are clean; only the history leaks.
 - [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
 
-² Phase 7 code work is complete and the suite is green (117 passed, 1 skipped). The phase does
-NOT close: the git-history sweep found a real term already pushed to the remote. Closing the
-phase requires history rewrite + force-push (destructive, outward-facing — author decision),
-and is tracked in `docs/plans/fixes/fix-2_history-leak-on-remote.md`.
+² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found the real
+term "[customer]" in pre-fix-1 commits already on the remote; the author reviewed it and
+**accepted the risk** (company name, not personal data — fix-1 had already sanitized person
+names and phones). No history rewrite is performed. Decision recorded in
+`docs/plans/fixes/fix-2_history-leak-on-remote.md`.
 
 ---
 
@@ -171,6 +172,5 @@ and is tracked in `docs/plans/fixes/fix-2_history-leak-on-remote.md`.
 - `fixes/fix-1_contact-rows-leak.md` — CONTACTO admin rows leaked names/phones in `data/`
   (working tree); fixed before Phase 3, dataset regenerated and reloaded.
 - `fixes/fix-2_history-leak-on-remote.md` — the pre-fix-1 `catalog.csv` (with "[customer]")
-  reached the **public git history** (commits already on `origin/main`). Remediation requires
-  history rewrite + force-push + remote hygiene — **awaiting author go-ahead** (destructive,
-  outward-facing).
+  reached the **public git history** (commits already on `origin/main`). **Risk accepted by
+  the author** (company name, not personal data); no history rewrite performed.
