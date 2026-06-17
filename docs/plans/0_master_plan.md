@@ -76,7 +76,7 @@ docs/plans/
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
 | 5 | React frontend | Done | Done¹ |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Done | Done |
-| 7 | Security audit + public README + release gate | Done | In progress² |
+| 7 | Security audit + public README + release gate | Done | Blocked² (history leak on remote) |
 
 ---
 
@@ -121,18 +121,18 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 
 **Goal:** demo-mode vector search uses real committed embeddings.
 
-- [ ] API-key decision with the author (pending)
-- [ ] `tools/generate_embeddings.py` (one-off run; reduced dimension to keep the repo small)
-- [ ] Versioned vectors + DB load + basic recall verification against the history
+- [x] API-key decision with the author (resolved: author's OpenAI key, one-off, < $0.01)
+- [x] `tools/generate_embeddings.py` (one-off run; reduced dimension 256 to keep the repo small)
+- [x] Versioned vectors + DB load + basic recall verification against the history (20/20)
 
 ## Phase 5: React frontend
 
 **Goal:** the real multi-step UI, without client branding.
 
-- [ ] Frontend port (Vite+TS+Tailwind): upload/dictate → review extraction → candidate table with
-      per-row dropdowns → finalize → delivery status lights
-- [ ] Biar Tech branding
-- [ ] Build and test against the local backend
+- [x] Frontend port (Vite+TS+Tailwind): upload/dictate → review extraction → candidate table with
+      per-row dropdowns → finalize → delivery status lights (+ demo recording picker)
+- [x] Biar Tech branding (Voice-to-Order header + demo banner; ERP card "simulada")
+- [x] Build and test against the local backend (build clean; CORS-verified smoke)
 
 ## Phase 6: Real mode + E2E
 
@@ -150,15 +150,27 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 - [x] Full `/8-audit` (release gate) + `docs/security/audit-2026-06-17-full.md`
       (0 Critical, 0 High; Medium/Low hardening applied — SEC-001..004)
 - [x] Recruiter-oriented public README (2-command quickstart, what is real, link to case study 06)
-- [ ] Final anonymization verification (`--terms`) + git-history sweep before the first push
-      (OBS-001 — author machine, external terms list; **still pending — publish blocker**)
+- [x] Final anonymization verification (`--terms`): working tree CLEAN (17 checks, 0 FAIL,
+      28 terms / 97 variants over 145 files)
+- [!] git-history sweep: **FAILS** — `data/catalog.csv` in commits `c5a2e30` (Phase 1) and
+      `e295387` (Phase 2) still contains the real term "[customer]" (pre-fix-1). **Both commits
+      are already on the public remote** (`origin/main` = `fbbe73e` = fix-1, a descendant).
+      This is a publish blocker that needs the author's decision (see fix-2 / §Fixes). The
+      structural gate and the working-tree `--terms` sweep are clean; only the history leaks.
 - [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
 
-² Phase 7 code work is complete and the suite is green; the phase closes (and the first public
-push happens) only after the pre-push anonymization sweep (`--terms` + git history) passes.
+² Phase 7 code work is complete and the suite is green (117 passed, 1 skipped). The phase does
+NOT close: the git-history sweep found a real term already pushed to the remote. Closing the
+phase requires history rewrite + force-push (destructive, outward-facing — author decision),
+and is tracked in `docs/plans/fixes/fix-2_history-leak-on-remote.md`.
 
 ---
 
 ## Fixes
 
-_(No fixes recorded — project starting up)_
+- `fixes/fix-1_contact-rows-leak.md` — CONTACTO admin rows leaked names/phones in `data/`
+  (working tree); fixed before Phase 3, dataset regenerated and reloaded.
+- `fixes/fix-2_history-leak-on-remote.md` — the pre-fix-1 `catalog.csv` (with "[customer]")
+  reached the **public git history** (commits already on `origin/main`). Remediation requires
+  history rewrite + force-push + remote hygiene — **awaiting author go-ahead** (destructive,
+  outward-facing).
