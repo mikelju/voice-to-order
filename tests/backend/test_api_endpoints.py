@@ -33,6 +33,14 @@ async def test_process_audio_demo_replay_contract(client):
     assert body["articles_list_original_text"]
 
 
+async def test_process_audio_rejects_unsupported_type(client):
+    # SEC-001: a non-audio content-type is rejected with 415 before any work.
+    r = await client.post("/api/v1/orders/process-audio",
+                          files={"audio_file": ("evil.exe", b"MZ", "application/x-msdownload")},
+                          data={"recording_id": "0"})
+    assert r.status_code == 415
+
+
 async def test_process_audio_not_found_order_warns(client):
     # recording 8 -> num_order 10009 -> simulated ERP not_found
     r = await client.post("/api/v1/orders/process-audio",

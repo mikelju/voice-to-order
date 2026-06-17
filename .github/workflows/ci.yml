@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-tests:
+    name: Backend tests (Postgres + pgvector)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: vto
+          POSTGRES_PASSWORD: vto
+          POSTGRES_DB: vto
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vto -d vto"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      # The DB-backed tests read DATABASE_URL (default would be the local 5433 mapping).
+      DATABASE_URL: postgresql://vto:vto@localhost:5432/vto
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Apply schema + functions (CI service does not auto-run db/init)
+        run: python tools/apply_sql.py db/init/01_schema.sql db/init/02_functions.sql db/init/03_phase3.sql
+      - name: Load anonymized data + committed embeddings
+        run: python tools/load_database.py
+      - name: Run tests
+        # Real-mode tests are opt-in (RUN_REAL_MODE_TESTS) and never run here: no keys, no quota.
+        run: pytest -q
+
+  anonymization-gate:
+    name: Anonymization gate (structural)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Structural anonymization checks over data/
+        # NOTE: the --terms sweep (real-terms list) and the git-history sweep are author-run
+        # before publishing (they need secrets kept outside the repo). CI runs the public gate.
+        run: python tools/verify_anonymization.py
+
+  dependency-scan:
+    name: Dependency scan (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install runtime deps + pip-audit
+        run: |
+          pip install -r requirements.txt
+          pip install pip-audit
+      - name: Audit installed dependencies (fail on known CVEs)
+        run: pip-audit
+
+  frontend-build:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Type-check + build
+        run: npm run build
+      - name: Audit dependencies (high+; non-blocking on transitive dev advisories)
+        run: npm audit --audit-level=high || true

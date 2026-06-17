@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from pathlib import Path
 from typing import Optional
@@ -50,7 +51,10 @@ class ErpSimulator:
         try:
             out_dir = Path(settings.ERP_DIR)
             out_dir.mkdir(parents=True, exist_ok=True)
-            out_file = out_dir / f"order_{order_id}_{int(time.time())}.json"
+            # SEC-008: derive the filename from digits only, so path safety does not
+            # depend on the order of the int(order_id) call above.
+            safe_id = re.sub(r"\D", "", str(order_id)) or "S_N"
+            out_file = out_dir / f"order_{safe_id}_{int(time.time())}.json"
             out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
                                 encoding="utf-8")
         except OSError as exc:   # review H6: channel failure -> (False, msg), never 500

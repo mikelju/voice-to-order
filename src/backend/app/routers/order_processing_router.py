@@ -38,6 +38,15 @@ router = APIRouter(prefix="/orders")
 
 ERP_EXCLUDED_IDS = ["HERRAMIENTA", "OBSERVACION"]   # ported sentinels
 
+# SEC-001 (audit 2026-06-17): bound the audio upload. 25 MB is Whisper's own limit;
+# rejecting early avoids buffering huge bodies and burning real-mode quota.
+MAX_AUDIO_BYTES = 25 * 1024 * 1024
+ALLOWED_AUDIO_TYPES = {
+    "audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave",
+    "audio/mpeg", "audio/mp3", "audio/mp4", "audio/m4a", "audio/x-m4a",
+    "audio/webm", "audio/ogg", "application/octet-stream",
+}
+
 
 @router.post("/process-audio", response_model=ProcessAudioResponse)
 async def process_audio_order(request: Request,
@@ -58,14 +67,25 @@ async def process_audio_order(request: Request,
                             detail=f"recording_id {recording_id} fuera de rango "
                                    f"(0..{len(store) - 1}).")
 
+    # SEC-001: reject unsupported types and oversized uploads before any work.
+    if audio_file.content_type and audio_file.content_type not in ALLOWED_AUDIO_TYPES:
+        raise HTTPException(status_code=415, detail="Tipo de audio no soportado.")
+    declared = request.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > MAX_AUDIO_BYTES + 4096:
+        raise HTTPException(status_code=413,
+                            detail="Audio demasiado grande (máximo 25 MB).")
+
     try:
-        content = await audio_file.read()
+        content = await audio_file.read(MAX_AUDIO_BYTES + 1)
+        if len(content) > MAX_AUDIO_BYTES:
+            raise HTTPException(status_code=413,
+                                detail="Audio demasiado grande (máximo 25 MB).")
         transcribed = await transcribe_audio_service(
             clients, content, audio_file.filename or "", recording_id=recording_id)
         if transcribed is None:
+            # SEC-002: do not echo the user-supplied filename back to the client.
             raise HTTPException(status_code=500,
-                                detail="Fallo en la transcripción del audio para el "
-                                       f"archivo: {audio_file.filename}")
+                                detail="Fallo en la transcripción del audio.")
         transcription, _rid = transcribed
 
         processing = await process_order_text_service(clients, transcription)

@@ -189,8 +189,12 @@ def check_secrets_and_emails(paths, r: Report, label: str) -> None:
             if pat.search(body):
                 sec_hits.append(f"{p.name}:{name}")
         for m in EMAIL_RE.findall(body):
-            # author's own addresses and RFC-style fictional domains are allowed
-            if not m.endswith(("biartechnology.com", "mikelju@gmail.com", "ejemplo.com")):
+            # Allowed: the author's own addresses, RFC-style fictional domains, and the
+            # reserved, non-routable `.local` TLD (RFC 6762) used by the synthetic
+            # demo/test sender addresses (e.g. demo@voice-to-order.local). A real contact
+            # domain (@company.com) is still flagged - this narrows false positives only.
+            if not m.endswith(("biartechnology.com", "mikelju@gmail.com", "ejemplo.com",
+                               ".local")):
                 email_hits.append(f"{p.name}:{m}")
     r.add(not sec_hits, f"{label}: no secrets", "; ".join(sorted(set(sec_hits))[:5]))
     r.add(not email_hits, f"{label}: no unexpected emails", "; ".join(sorted(set(email_hits))[:5]))

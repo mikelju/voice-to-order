@@ -76,7 +76,7 @@ docs/plans/
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
 | 5 | React frontend | Done | Done¹ |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Done | Done |
-| 7 | Security audit + public README + release gate | Pending | Pending |
+| 7 | Security audit + public README + release gate | Done | In progress² |
 
 ---
 
@@ -147,10 +147,15 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 
 **Goal:** public repo ready for recruiters.
 
-- [ ] Full `/8-audit` (release gate) + `docs/security/`
-- [ ] Recruiter-oriented public README (2-command quickstart, what is real, link to case study 06)
+- [x] Full `/8-audit` (release gate) + `docs/security/audit-2026-06-17-full.md`
+      (0 Critical, 0 High; Medium/Low hardening applied — SEC-001..004)
+- [x] Recruiter-oriented public README (2-command quickstart, what is real, link to case study 06)
 - [ ] Final anonymization verification (`--terms`) + git-history sweep before the first push
-- [ ] Basic CI (tests + security workflow)
+      (OBS-001 — author machine, external terms list; **still pending — publish blocker**)
+- [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
+
+² Phase 7 code work is complete and the suite is green; the phase closes (and the first public
+push happens) only after the pre-push anonymization sweep (`--terms` + git history) passes.
 
 ---
 

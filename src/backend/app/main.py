@@ -62,7 +62,9 @@ app = FastAPI(title=settings.APP_NAME, lifespan=lifespan,
 # CORS (ported dev fallback: Vite port-retry range 5173-5180)
 origins = ([f"http://localhost:{port}" for port in range(5173, 5181)]
            + [f"http://127.0.0.1:{port}" for port in range(5173, 5181)])
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
+# SEC-003 (audit 2026-06-17): the app uses no cookies/auth, so credentials are never
+# sent; allow_credentials stays False to keep the CORS surface minimal.
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False,
                    allow_methods=["*"], allow_headers=["*"])
 
 

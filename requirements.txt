@@ -2,7 +2,7 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
 pydantic-settings>=2.4
-python-multipart>=0.0.9
+python-multipart>=0.0.18    # SEC-004: floor above the multipart DoS (CVE-2024-53981)
 python-dotenv>=1.0
 reportlab>=4.0
 psycopg[binary]>=3.1       # Postgres driver (loader + integration tests + backend)

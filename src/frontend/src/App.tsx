@@ -274,7 +274,9 @@ const App: React.FC = () => {
             <div className="flex gap-3 pt-2">
               {sendOrderResult.pdf_download_data && pdfDownloaded && (
                 <a
-                  href={`data:${sendOrderResult.pdf_download_data.content_type};base64,${sendOrderResult.pdf_download_data.b64_pdf}`}
+                  // SEC-006: hardcode the MIME (never trust a server-sent content_type
+                  // in a data: URL) + download attribute so the blob is never rendered inline
+                  href={`data:application/pdf;base64,${sendOrderResult.pdf_download_data.b64_pdf}`}
                   download={sendOrderResult.pdf_download_data.filename}
                   className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200"
                 >
@@ -306,7 +308,7 @@ const App: React.FC = () => {
                     El PDF es el registro del pedido. Descárgalo para continuar.
                   </p>
                   <a
-                    href={`data:${sendOrderResult.pdf_download_data.content_type};base64,${sendOrderResult.pdf_download_data.b64_pdf}`}
+                    href={`data:application/pdf;base64,${sendOrderResult.pdf_download_data.b64_pdf}`}
                     download={sendOrderResult.pdf_download_data.filename}
                     onClick={() => setPdfDownloaded(true)}
                     className="inline-block px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700"

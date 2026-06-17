@@ -92,7 +92,7 @@ def counts(conn: psycopg.Connection) -> dict[str, int]:
     with conn.cursor() as cur:
         for table in ("catalogo", "historico_pedidos", "embeddings",
                       "historico_embeddings", "query_embeddings"):
-            cur.execute(f"SELECT count(*) FROM {table}")  # fixed identifier set, not user input
+            cur.execute(f"SELECT count(*) FROM {table}")  # noqa: S608 - fixed identifier set, not user input
             out[table] = cur.fetchone()[0]
     return out
 

@@ -26,12 +26,14 @@ async def search_catalog(request: Request,
     terms = [t.strip() for t in query.lower().split() if t.strip()]
     if not terms:
         return []
+    # SEC-007: the f-string interpolates only the fixed clause "articulo ILIKE %s"
+    # (one per term); the search terms themselves are bound parameters. No injection.
     where = " AND ".join("articulo ILIKE %s" for _ in terms)
     params = [f"%{t}%" for t in terms]
     try:
         async with pool.connection() as conn:
             cur = await conn.execute(
-                f"SELECT id_articulo, articulo FROM catalogo WHERE {where} LIMIT 50",
+                f"SELECT id_articulo, articulo FROM catalogo WHERE {where} LIMIT 50",  # noqa: S608
                 params)
             rows = await cur.fetchall()
         return [CatalogItem(id_articulo=r[0], articulo=r[1]) for r in rows]
