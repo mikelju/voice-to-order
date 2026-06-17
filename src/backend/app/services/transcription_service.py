@@ -59,8 +59,9 @@ async def _transcribe_real(audio_file_content: bytes, filename: str) -> Optional
                 return result.text
 
             text = await asyncio.to_thread(_transcribe_sync)
+            # "filename" is a reserved LogRecord attribute - use another key
             logger.info("Whisper transcription ok",
-                        extra={"chars": len(text), "filename": filename})
+                        extra={"chars": len(text), "audio_file": filename})
             return text
         finally:
             try:

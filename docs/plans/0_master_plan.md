@@ -75,7 +75,7 @@ docs/plans/
 | 3 | FastAPI backend (full pipeline in demo mode) | Done | Done¹ |
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
 | 5 | React frontend | Done | Done¹ |
-| 6 | Real mode (live Whisper + Gemini) + E2E | Pending | Pending |
+| 6 | Real mode (live Whisper + Gemini) + E2E | Done | Done |
 | 7 | Security audit + public README + release gate | Pending | Pending |
 
 ---
@@ -138,10 +138,10 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 
 **Goal:** with the user's own `.env`, the pipeline uses live models.
 
-- [ ] Ported multi-provider LLM wrapper; mode flags
-- [ ] Live Whisper + Gemini; live query embeddings
-- [ ] E2E: demo mode (CI-able) + real mode (manual); chaos testing
-- [ ] Document approximate per-query costs
+- [x] Ported multi-provider LLM wrapper; mode flags
+- [x] Live Whisper + Gemini; live query embeddings (executed E2E — `phase_6/6.1`)
+- [x] E2E: demo mode (CI-able, 116 tests) + real mode (opt-in `tests/realmode/`, manual)
+- [x] Document approximate per-query costs (`phase_6/6.1`: ~US$0.01/order, Whisper-dominated)
 
 ## Phase 7: Audit + release gate
 
