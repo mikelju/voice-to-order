@@ -8,6 +8,7 @@ import type {
   UserSelectedItem,
 } from '../types/api_models';
 import type { SendOrderDraft } from './FinalizeOrderForm';
+import { useI18n } from '../i18n';
 
 interface OrderSummaryAndSendProps {
   finalizedOrder: FinalizeOrderResponse;
@@ -28,6 +29,7 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
   setError,
   onGoBack,
 }) => {
+  const { t, lang } = useI18n();
   const handleSendOrder = async () => {
     setIsLoading(true);
     setError(null);
@@ -48,13 +50,11 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
         onOrderSent(responseData);
       } else {
         setError(
-          responseData.message ||
-            responseData.error_details ||
-            'Error crítico: No se generó el PDF del pedido.',
+          responseData.message || responseData.error_details || t('summary.err.noPdf'),
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido al enviar.');
+      setError(err instanceof Error ? err.message : t('summary.err.unknown'));
     } finally {
       setIsLoading(false);
     }
@@ -63,8 +63,8 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Resumen y envío</h2>
-        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">← Volver</button>
+        <h2 className="text-xl font-bold text-gray-800">{t('summary.title')}</h2>
+        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">{t('common.back')}</button>
       </div>
 
       {finalizedOrder.warnings.length > 0 && (
@@ -76,15 +76,17 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-        <div><span className="text-gray-400">Nº parte:</span> {draft.num_order || 'S/N'}</div>
-        <div><span className="text-gray-400">Planta:</span> {draft.planta_name || 'S/P'}</div>
+        <div><span className="text-gray-400">{t('summary.partNumber')}</span> {draft.num_order || t('value.noPartNumber')}</div>
+        <div><span className="text-gray-400">{t('summary.plant')}</span> {draft.planta_name || t('value.noPlant')}</div>
         <div>
-          <span className="text-gray-400">Plazo:</span>{' '}
-          {draft.plazo ? new Date(draft.plazo + 'T00:00:00').toLocaleDateString('es-ES') : '-'}
+          <span className="text-gray-400">{t('summary.deadline')}</span>{' '}
+          {draft.plazo
+            ? new Date(draft.plazo + 'T00:00:00').toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB')
+            : '-'}
         </div>
         <div>
-          <span className="text-gray-400">Flags:</span>{' '}
-          {[draft.enviar_a_obra && 'Enviar a Obra', draft.solo_imputar && 'Sólo imputar']
+          <span className="text-gray-400">{t('summary.flags')}</span>{' '}
+          {[draft.enviar_a_obra && t('summary.flag.toSite'), draft.solo_imputar && t('summary.flag.onlyImpute')]
             .filter(Boolean)
             .join(', ') || '—'}
         </div>
@@ -94,9 +96,9 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Uds</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Código</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Descripción</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('summary.col.units')}</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('summary.col.code')}</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('summary.col.description')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -116,7 +118,7 @@ export const OrderSummaryAndSend: React.FC<OrderSummaryAndSendProps> = ({
           onClick={handleSendOrder}
           className="px-6 py-2.5 bg-green-600 text-white text-sm font-bold rounded-md hover:bg-green-700"
         >
-          Enviar pedido (3 canales)
+          {t('summary.send')}
         </button>
       </div>
     </div>

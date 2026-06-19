@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useReactMediaRecorder } from 'react-media-recorder';
 import { processAudio } from '../api/apiService';
 import type { ProcessAudioResponse } from '../types/api_models';
+import { useI18n } from '../i18n';
 
 interface AudioRecorderHandlerProps {
   onAudioProcessed: (data: ProcessAudioResponse) => void;
@@ -17,6 +18,7 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
   setError,
   onGoBack,
 }) => {
+  const { t } = useI18n();
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [audioUrlForPlayback, setAudioUrlForPlayback] = useState<string | null>(null);
 
@@ -32,10 +34,10 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
   const recorderErrorMessage = (() => {
     if (!recorderError) return null;
     if (recorderError.includes('Permission') || recorderError.includes('NotAllowed')) {
-      return 'Por favor, permite el acceso al micrófono.';
+      return t('rec.err.permission');
     }
-    if (recorderError.includes('NotFound')) return 'No se encontró un micrófono.';
-    return `Error del grabador: ${recorderError}`;
+    if (recorderError.includes('NotFound')) return t('rec.err.notFound');
+    return t('rec.err.generic', { e: recorderError });
   })();
 
   const handleProcessRecordedAudio = async () => {
@@ -48,7 +50,7 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
       const data = await processAudio(file);
       onAudioProcessed(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error procesando la grabación');
+      setError(err instanceof Error ? err.message : t('rec.err.process'));
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +64,8 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Grabar pedido</h2>
-        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">← Volver</button>
+        <h2 className="text-xl font-bold text-gray-800">{t('rec.title')}</h2>
+        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">{t('common.back')}</button>
       </div>
       {recorderErrorMessage && (
         <p className="mb-3 text-sm text-red-600">{recorderErrorMessage}</p>
@@ -74,20 +76,20 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
             onClick={startRecording}
             className="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700"
           >
-            ● Grabar
+            {t('rec.record')}
           </button>
         ) : (
           <button
             onClick={stopRecording}
             className="px-5 py-2 bg-gray-800 text-white text-sm font-medium rounded-md hover:bg-gray-900 animate-pulse"
           >
-            ■ Detener
+            {t('rec.stop')}
           </button>
         )}
         <span className="text-sm text-gray-500">
-          {status === 'recording' && 'Grabando...'}
-          {status === 'acquiring_media' && 'Accediendo al micrófono...'}
-          {status === 'stopped' && 'Grabación lista.'}
+          {status === 'recording' && t('rec.recording')}
+          {status === 'acquiring_media' && t('rec.acquiring')}
+          {status === 'stopped' && t('rec.stopped')}
         </span>
       </div>
       {audioUrlForPlayback && (
@@ -98,20 +100,18 @@ export const AudioRecorderHandler: React.FC<AudioRecorderHandlerProps> = ({
               onClick={handleProcessRecordedAudio}
               className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
             >
-              Procesar grabación
+              {t('rec.process')}
             </button>
             <button
               onClick={handleDiscard}
               className="px-5 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200"
             >
-              Descartar
+              {t('rec.discard')}
             </button>
           </div>
         </div>
       )}
-      <p className="mt-3 text-xs text-gray-400">
-        En modo demo la grabación se reproduce contra un pedido grabado (selección determinista).
-      </p>
+      <p className="mt-3 text-xs text-gray-400">{t('rec.hint')}</p>
     </div>
   );
 };

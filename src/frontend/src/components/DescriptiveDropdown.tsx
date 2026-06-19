@@ -1,6 +1,7 @@
 // Searchable per-row dropdown (ported as-is from the original).
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Option } from '../types';
+import { useI18n } from '../i18n';
 
 interface DescriptiveDropdownProps {
   options: Option[];
@@ -13,6 +14,7 @@ export const DescriptiveDropdown: React.FC<DescriptiveDropdownProps> = ({
   selectedOptionId,
   onSelect,
 }) => {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,7 @@ export const DescriptiveDropdown: React.FC<DescriptiveDropdownProps> = ({
     () => options.find((opt) => opt.id === selectedOptionId),
     [options, selectedOptionId],
   );
-  const displayText = selectedOption ? selectedOption.label : 'Seleccionar opción';
+  const displayText = selectedOption ? selectedOption.label : t('dropdown.select');
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -96,7 +98,7 @@ export const DescriptiveDropdown: React.FC<DescriptiveDropdownProps> = ({
           <input
             ref={searchInputRef}
             type="search"
-            placeholder="Buscar..."
+            placeholder={t('dropdown.search')}
             autoComplete="off"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,7 +124,7 @@ export const DescriptiveDropdown: React.FC<DescriptiveDropdownProps> = ({
               </li>
             ))}
             {filteredOptions.length === 0 && (
-              <li className="px-2 py-2 text-gray-400">No options match.</li>
+              <li className="px-2 py-2 text-gray-400">{t('dropdown.noMatch')}</li>
             )}
           </ul>
         </div>

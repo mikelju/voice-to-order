@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { processAudio } from '../api/apiService';
 import type { ProcessAudioResponse } from '../types/api_models';
+import { useI18n } from '../i18n';
 
 interface AudioUploaderProps {
   onAudioProcessed: (data: ProcessAudioResponse) => void;
@@ -16,6 +17,7 @@ export const AudioUploader: React.FC<AudioUploaderProps> = ({
   setError,
   onGoBack,
 }) => {
+  const { t } = useI18n();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
@@ -26,7 +28,7 @@ export const AudioUploader: React.FC<AudioUploaderProps> = ({
       const data = await processAudio(selectedFile);
       onAudioProcessed(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error procesando el audio');
+      setError(err instanceof Error ? err.message : t('upload.err.process'));
     } finally {
       setIsLoading(false);
     }
@@ -35,8 +37,8 @@ export const AudioUploader: React.FC<AudioUploaderProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Subir audio</h2>
-        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">← Volver</button>
+        <h2 className="text-xl font-bold text-gray-800">{t('upload.title')}</h2>
+        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">{t('common.back')}</button>
       </div>
       <input
         type="file"
@@ -49,15 +51,13 @@ export const AudioUploader: React.FC<AudioUploaderProps> = ({
           {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
         </p>
       )}
-      <p className="mt-2 text-xs text-gray-400">
-        En modo demo el contenido se reproduce contra un pedido grabado (selección determinista).
-      </p>
+      <p className="mt-2 text-xs text-gray-400">{t('upload.hint')}</p>
       <button
         onClick={handleSubmit}
         disabled={!selectedFile}
         className="mt-4 px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:bg-gray-300"
       >
-        Procesar audio
+        {t('upload.process')}
       </button>
     </div>
   );

@@ -14,6 +14,7 @@ import { DemoRecordingPicker } from './components/DemoRecordingPicker';
 import { FinalizeOrderForm, SendOrderDraft } from './components/FinalizeOrderForm';
 import { InitialOrderDetails } from './components/InitialOrderDetails';
 import { OrderSummaryAndSend } from './components/OrderSummaryAndSend';
+import { useI18n, LanguageSwitcher } from './i18n';
 
 type AppStep =
   | 'CHOOSE_INPUT'
@@ -55,7 +56,7 @@ const StatusCard: React.FC<{
         <div className={`flex-shrink-0 mt-0.5 font-bold ${textColor}`}>{icon}</div>
         <div className="ml-3 w-full">
           <h3 className={`text-sm font-bold ${textColor} uppercase tracking-wide`}>{title}</h3>
-          <p className={`mt-1 text-sm ${textColor} opacity-90`}>{message || 'Sin detalles'}</p>
+          <p className={`mt-1 text-sm ${textColor} opacity-90`}>{message}</p>
         </div>
       </div>
     </div>
@@ -70,15 +71,18 @@ const getEmailStatus = (result: SendOrderResponse | null) => {
   return 'exito';
 };
 
-const getEmailMessage = (result: SendOrderResponse | null) => {
-  if (!result?.error_details) return 'PDF enviado por email (simulado).';
+// Returns the backend "Email: ..." detail when present (kept verbatim), else null so the
+// caller can fall back to a translated default.
+const getEmailMessage = (result: SendOrderResponse | null): string | null => {
+  if (!result?.error_details) return null;
   const emailPart = result.error_details
     .split(' | ')
     .find((part) => part.startsWith('Email:'));
-  return emailPart || 'PDF enviado por email (simulado).';
+  return emailPart || null;
 };
 
 const App: React.FC = () => {
+  const { t } = useI18n();
   const [currentStep, setCurrentStep] = useState<AppStep>('CHOOSE_INPUT');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,14 +116,17 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-gradient-to-r from-indigo-700 to-purple-700 text-white shadow-md">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold">Voice-to-Order</h1>
-            <p className="text-xs text-indigo-200">
-              Pedidos dictados → catálogo de 31k artículos · réplica local del sistema en producción
-            </p>
+            <p className="text-xs text-indigo-200">{t('header.subtitle')}</p>
           </div>
-          <span className="text-xs bg-white/15 rounded-full px-3 py-1">modo demo · sin claves API</span>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <span className="hidden sm:inline text-xs bg-white/15 rounded-full px-3 py-1">
+              {t('header.demoBadge')}
+            </span>
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
 
@@ -133,37 +140,32 @@ const App: React.FC = () => {
 
         {currentStep === 'CHOOSE_INPUT' && (
           <div className="bg-white rounded-lg shadow-xl p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-1">Nuevo pedido</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Elige cómo dictar el pedido. Todo el flujo corre en local: transcripción y
-              extracción por replay de pedidos reales, búsqueda vectorial real (pgvector).
-            </p>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">{t('choose.title')}</h2>
+            <p className="text-sm text-gray-500 mb-6">{t('choose.subtitle')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={() => setCurrentStep('DEMO_PICKER')}
                 className="p-5 rounded-lg border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 text-left"
               >
                 <span className="block text-2xl mb-2">▶</span>
-                <span className="block font-semibold text-indigo-800">Pedido grabado</span>
-                <span className="block text-xs text-gray-500 mt-1">
-                  Elige uno de los 47 pedidos reales anonimizados
-                </span>
+                <span className="block font-semibold text-indigo-800">{t('choose.recorded.title')}</span>
+                <span className="block text-xs text-gray-500 mt-1">{t('choose.recorded.sub')}</span>
               </button>
               <button
                 onClick={() => setCurrentStep('RECORD_AUDIO')}
                 className="p-5 rounded-lg border-2 border-gray-200 hover:border-indigo-400 text-left"
               >
                 <span className="block text-2xl mb-2">🎙</span>
-                <span className="block font-semibold text-gray-800">Grabar micrófono</span>
-                <span className="block text-xs text-gray-500 mt-1">webm desde el navegador</span>
+                <span className="block font-semibold text-gray-800">{t('choose.mic.title')}</span>
+                <span className="block text-xs text-gray-500 mt-1">{t('choose.mic.sub')}</span>
               </button>
               <button
                 onClick={() => setCurrentStep('UPLOAD_AUDIO')}
                 className="p-5 rounded-lg border-2 border-gray-200 hover:border-indigo-400 text-left"
               >
                 <span className="block text-2xl mb-2">📁</span>
-                <span className="block font-semibold text-gray-800">Subir fichero</span>
-                <span className="block text-xs text-gray-500 mt-1">mp3 / wav / m4a / ogg</span>
+                <span className="block font-semibold text-gray-800">{t('choose.upload.title')}</span>
+                <span className="block text-xs text-gray-500 mt-1">{t('choose.upload.sub')}</span>
               </button>
             </div>
           </div>
@@ -246,27 +248,27 @@ const App: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-800">
               {sendOrderResult.order_sent_status === 'enviado'
-                ? 'Pedido procesado'
-                : 'Pedido con errores'}
+                ? t('confirm.titleOk')
+                : t('confirm.titleErr')}
             </h2>
             <p className="text-sm text-gray-600">{sendOrderResult.message}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatusCard
-                title="Integración ERP (simulada)"
+                title={t('status.erp.title')}
                 status={sendOrderResult.erp_update_status}
-                message={sendOrderResult.erp_update_message}
+                message={sendOrderResult.erp_update_message || t('status.noDetails')}
                 isCritical={true}
               />
               <StatusCard
-                title="Envío por Email (PDF)"
+                title={t('status.email.title')}
                 status={getEmailStatus(sendOrderResult)}
-                message={getEmailMessage(sendOrderResult)}
+                message={getEmailMessage(sendOrderResult) ?? t('status.email.sent')}
                 isCritical={false}
               />
               <StatusCard
-                title="Actualización Histórico"
+                title={t('status.history.title')}
                 status={sendOrderResult.historical_update_status}
-                message={sendOrderResult.historical_update_message || 'Datos guardados para aprendizaje.'}
+                message={sendOrderResult.historical_update_message || t('status.history.default')}
                 isCritical={false}
               />
             </div>
@@ -280,7 +282,7 @@ const App: React.FC = () => {
                   download={sendOrderResult.pdf_download_data.filename}
                   className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200"
                 >
-                  Volver a descargar PDF
+                  {t('confirm.redownload')}
                 </a>
               )}
               {sendOrderResult.erp_update_status === 'fallido' && (
@@ -288,14 +290,14 @@ const App: React.FC = () => {
                   onClick={() => setCurrentStep('SEND_ORDER')}
                   className="px-4 py-2 bg-red-50 text-red-700 text-sm rounded-md hover:bg-red-100"
                 >
-                  Reintentar envío al ERP
+                  {t('confirm.retryErp')}
                 </button>
               )}
               <button
                 onClick={resetApp}
                 className="ml-auto px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
               >
-                Procesar nuevo pedido
+                {t('confirm.newOrder')}
               </button>
             </div>
 
@@ -303,17 +305,15 @@ const App: React.FC = () => {
             {!pdfDownloaded && sendOrderResult.pdf_download_data && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/90 p-4 backdrop-blur-sm">
                 <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md text-center">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">Descarga el PDF del pedido</h3>
-                  <p className="text-sm text-gray-500 mb-6">
-                    El PDF es el registro del pedido. Descárgalo para continuar.
-                  </p>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">{t('pdf.modal.title')}</h3>
+                  <p className="text-sm text-gray-500 mb-6">{t('pdf.modal.body')}</p>
                   <a
                     href={`data:application/pdf;base64,${sendOrderResult.pdf_download_data.b64_pdf}`}
                     download={sendOrderResult.pdf_download_data.filename}
                     onClick={() => setPdfDownloaded(true)}
                     className="inline-block px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700"
                   >
-                    Descargar PDF
+                    {t('pdf.modal.download')}
                   </a>
                 </div>
               </div>
@@ -325,15 +325,14 @@ const App: React.FC = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-2xl px-8 py-6 text-center">
               <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700">Procesando...</p>
+              <p className="text-sm font-medium text-gray-700">{t('common.loading')}</p>
             </div>
           </div>
         )}
       </main>
 
       <footer className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
-        Voice-to-Order — réplica pública y anonimizada de un sistema en producción ·
-        Biar Technology
+        {t('footer')}
       </footer>
     </div>
   );

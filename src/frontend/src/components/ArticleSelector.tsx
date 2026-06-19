@@ -7,6 +7,7 @@ import type { CatalogItem, ProcessAudioResponse, UserSelectedItem } from '../typ
 import type { Option, TableRowData } from '../types';
 import { CatalogSearchModal } from './CatalogSearchModal';
 import { DataTable } from './DataTable';
+import { useI18n } from '../i18n';
 
 const SENTINEL: Option = { id: '-', label: '--- SIN OPCIONES ---' };
 
@@ -21,6 +22,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
   onSelectionsConfirmed,
   onGoBack,
 }) => {
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tableDisplayData, setTableDisplayData] = useState<TableRowData[]>([]);
@@ -62,7 +64,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
       );
       setTableDisplayData(newTableDisplayData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error buscando artículos');
+      setError(err instanceof Error ? err.message : t('select.err.search'));
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +97,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
   const handleAddManualArticle = (article: CatalogItem, quantity: number) => {
     setTableDisplayData((rows) => {
       if (rows.some((row) => row.selectedCatalogId === article.id_articulo)) {
-        setError('Ese artículo ya está en el pedido.');
+        setError(t('select.err.duplicate'));
         setTimeout(() => setError(null), 3000);
         return rows;
       }
@@ -130,7 +132,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
         quantity: row.finalQuantity,
       }));
     if (selections.length === 0) {
-      setError('No hay líneas válidas seleccionadas.');
+      setError(t('select.err.noLines'));
       setTimeout(() => setError(null), 3000);
       return;
     }
@@ -140,8 +142,8 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Seleccionar artículos del catálogo</h2>
-        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">← Volver</button>
+        <h2 className="text-xl font-bold text-gray-800">{t('select.title')}</h2>
+        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">{t('common.back')}</button>
       </div>
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 px-3 py-2 rounded text-sm text-red-700">
@@ -149,9 +151,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
         </div>
       )}
       {isLoading ? (
-        <p className="text-sm text-gray-500 py-8 text-center">
-          Buscando candidatos (memoria aprendida + catálogo, búsqueda vectorial)...
-        </p>
+        <p className="text-sm text-gray-500 py-8 text-center">{t('select.loading')}</p>
       ) : (
         <>
           <DataTable
@@ -165,13 +165,13 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 text-sm text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100"
             >
-              + Añadir manualmente del catálogo
+              {t('select.addManual')}
             </button>
             <button
               onClick={handleConfirmSelections}
               className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
             >
-              Confirmar selección →
+              {t('select.confirm')}
             </button>
           </div>
         </>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { searchFullCatalog } from '../api/apiService';
 import { useDebounce } from '../hooks/useDebounce';
 import type { CatalogItem } from '../types/api_models';
+import { useI18n } from '../i18n';
 
 interface CatalogSearchModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export const CatalogSearchModal: React.FC<CatalogSearchModalProps> = ({
   onClose,
   onArticleSelect,
 }) => {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CatalogItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,19 +70,19 @@ export const CatalogSearchModal: React.FC<CatalogSearchModalProps> = ({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/70 p-4">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">Buscar en el catálogo</h3>
+          <h3 className="text-lg font-semibold text-gray-800">{t('catalog.title')}</h3>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
         <div className="p-5 space-y-3 overflow-y-auto custom-scrollbar">
           <input
             type="search"
             autoFocus
-            placeholder="Escribe al menos 3 caracteres..."
+            placeholder={t('catalog.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
-          {isLoading && <p className="text-sm text-gray-500">Buscando...</p>}
+          {isLoading && <p className="text-sm text-gray-500">{t('catalog.searching')}</p>}
           <ul className="divide-y divide-gray-100 border border-gray-100 rounded-md max-h-64 overflow-y-auto custom-scrollbar">
             {results.map((item) => (
               <li
@@ -97,12 +99,12 @@ export const CatalogSearchModal: React.FC<CatalogSearchModalProps> = ({
               </li>
             ))}
             {!isLoading && results.length === 0 && debouncedQuery.trim().length >= 3 && (
-              <li className="px-3 py-3 text-sm text-gray-400">Sin resultados.</li>
+              <li className="px-3 py-3 text-sm text-gray-400">{t('catalog.noResults')}</li>
             )}
           </ul>
           {selectedArticle && (
             <div className="flex items-center gap-3 pt-2">
-              <label className="text-sm text-gray-600">Cantidad:</label>
+              <label className="text-sm text-gray-600">{t('catalog.quantity')}</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -116,7 +118,7 @@ export const CatalogSearchModal: React.FC<CatalogSearchModalProps> = ({
                 onClick={handleConfirm}
                 className="ml-auto px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
               >
-                Añadir al pedido
+                {t('catalog.add')}
               </button>
             </div>
           )}

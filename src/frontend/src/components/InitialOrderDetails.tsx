@@ -1,6 +1,7 @@
 // Step 2: review the transcription + extracted lines (read-only, ported).
 import React from 'react';
 import type { ProcessAudioResponse } from '../types/api_models';
+import { useI18n } from '../i18n';
 
 interface InitialOrderDetailsProps {
   data: ProcessAudioResponse;
@@ -13,9 +14,10 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
   onNextStep,
   onGoBack,
 }) => {
+  const { t } = useI18n();
   return (
     <div className="bg-white rounded-lg shadow-xl p-6 space-y-4">
-      <h2 className="text-xl font-bold text-gray-800">Revisar pedido extraído</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t('review.title')}</h2>
 
       {data.warnings.length > 0 && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
@@ -26,7 +28,7 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
       )}
 
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Transcripción</label>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t('review.transcription')}</label>
         <textarea
           readOnly
           value={data.transcription}
@@ -37,23 +39,23 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Nº de parte</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t('field.partNumber')}</label>
           <input
             readOnly
-            value={data.num_order || 'S/N'}
+            value={data.num_order || t('value.noPartNumber')}
             className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-gray-50 text-gray-700"
           />
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
-            Planta{' '}
+            {t('field.plant')}{' '}
             {data.planta_name_source === 'erp' && (
-              <span title="Planta verificada con el ERP (simulado)">✅</span>
+              <span title={t('review.plantVerified')}>✅</span>
             )}
           </label>
           <input
             readOnly
-            value={data.planta_name || 'Desconocido'}
+            value={data.planta_name || t('value.unknownPlant')}
             className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm bg-gray-50 text-gray-700"
           />
         </div>
@@ -61,7 +63,7 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
 
       {data.observaciones && (
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Observaciones</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t('field.notes')}</label>
           <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
             {data.observaciones}
           </p>
@@ -72,9 +74,9 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Cantidad</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Artículo</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Descripción</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('review.col.quantity')}</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('review.col.article')}</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('review.col.description')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -91,13 +93,13 @@ export const InitialOrderDetails: React.FC<InitialOrderDetailsProps> = ({
 
       <div className="flex justify-between pt-2">
         <button onClick={onGoBack} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
-          ← Volver
+          {t('common.back')}
         </button>
         <button
           onClick={onNextStep}
           className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700"
         >
-          Buscar artículos en catálogo →
+          {t('review.next')}
         </button>
       </div>
     </div>

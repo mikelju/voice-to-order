@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import type { TableRowData } from '../types';
 import { DescriptiveDropdown } from './DescriptiveDropdown';
+import { useI18n } from '../i18n';
 
 const QuantityInput: React.FC<{
   initialValue: number;
@@ -54,16 +55,17 @@ export const DataTable: React.FC<DataTableProps> = ({
   onQuantityChange,
   onDeleteRow,
 }) => {
+  const { t } = useI18n();
   return (
     <div className="shadow-xl rounded-lg overflow-hidden bg-white">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-800">
             <tr>
-              <th scope="col" className="px-2 py-2 text-center text-xs font-semibold text-gray-100 uppercase tracking-wider w-[60px]">Borrar</th>
-              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider w-[80px]">Uds.</th>
-              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider">Artículo (Original)</th>
-              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider">Descripción Catálogo (Seleccionar)</th>
+              <th scope="col" className="px-2 py-2 text-center text-xs font-semibold text-gray-100 uppercase tracking-wider w-[60px]">{t('table.col.delete')}</th>
+              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider w-[80px]">{t('table.col.units')}</th>
+              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider">{t('table.col.article')}</th>
+              <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-gray-100 uppercase tracking-wider">{t('table.col.catalogDesc')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
@@ -73,7 +75,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   <button
                     onClick={() => onDeleteRow(row.id)}
                     className="text-red-500 hover:text-red-700 p-2 rounded-full transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                    aria-label={`Eliminar fila ${row.originalArticleText}`}
+                    aria-label={t('table.aria.delete', { a: row.originalArticleText })}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -105,7 +107,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             {data.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500">
-                  No hay artículos para seleccionar.
+                  {t('table.empty')}
                 </td>
               </tr>
             )}

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { getDemoRecordings, processAudio } from '../api/apiService';
 import type { DemoRecording, ProcessAudioResponse } from '../types/api_models';
+import { useI18n } from '../i18n';
 
 interface DemoRecordingPickerProps {
   onAudioProcessed: (data: ProcessAudioResponse) => void;
@@ -16,6 +17,7 @@ export const DemoRecordingPicker: React.FC<DemoRecordingPickerProps> = ({
   setError,
   onGoBack,
 }) => {
+  const { t } = useI18n();
   const [recordings, setRecordings] = useState<DemoRecording[]>([]);
   const [loadingList, setLoadingList] = useState(true);
 
@@ -25,7 +27,7 @@ export const DemoRecordingPicker: React.FC<DemoRecordingPickerProps> = ({
       .then((recs) => {
         if (!cancelled) setRecordings(recs);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Error cargando grabaciones'))
+      .catch((err) => setError(err instanceof Error ? err.message : t('demo.err.load')))
       .finally(() => {
         if (!cancelled) setLoadingList(false);
       });
@@ -43,7 +45,7 @@ export const DemoRecordingPicker: React.FC<DemoRecordingPickerProps> = ({
       const data = await processAudio(dummy, rec.recording_id);
       onAudioProcessed(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error procesando la grabación');
+      setError(err instanceof Error ? err.message : t('demo.err.process'));
     } finally {
       setIsLoading(false);
     }
@@ -52,15 +54,12 @@ export const DemoRecordingPicker: React.FC<DemoRecordingPickerProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Pedidos grabados (demo)</h2>
-        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">← Volver</button>
+        <h2 className="text-xl font-bold text-gray-800">{t('demo.title')}</h2>
+        <button onClick={onGoBack} className="text-sm text-indigo-600 hover:underline">{t('common.back')}</button>
       </div>
-      <p className="text-sm text-gray-500 mb-4">
-        47 pedidos reales dictados por técnicos de campo (transcripciones anonimizadas).
-        Elige uno para reproducir el flujo completo.
-      </p>
+      <p className="text-sm text-gray-500 mb-4">{t('demo.subtitle')}</p>
       {loadingList ? (
-        <p className="text-sm text-gray-500">Cargando grabaciones...</p>
+        <p className="text-sm text-gray-500">{t('demo.loading')}</p>
       ) : (
         <ul className="divide-y divide-gray-100 border border-gray-100 rounded-md max-h-96 overflow-y-auto custom-scrollbar">
           {recordings.map((rec) => (
@@ -75,7 +74,7 @@ export const DemoRecordingPicker: React.FC<DemoRecordingPickerProps> = ({
                 </span>
                 <span className="text-sm text-gray-700 flex-1 line-clamp-2">{rec.transcription}</span>
                 <span className="text-xs bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 flex-shrink-0">
-                  {rec.n_items} líneas
+                  {t('demo.lines', { n: rec.n_items })}
                 </span>
               </div>
             </li>
