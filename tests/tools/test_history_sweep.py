@@ -82,3 +82,20 @@ def test_case_variants_are_matched(tmp_path):
     repo = make_repo(tmp_path, f"{CLEAN_TEXT}ART-abcdef0123,TUBO {TERM.upper()} DN20\n")
     proc = run(repo, terms_file(tmp_path))
     assert proc.returncode == 1, proc.stdout
+
+
+def test_non_git_directory_errors_instead_of_reporting_clean(tmp_path):
+    """A gate that cannot run must not look like a gate that passed (exit 2, not 0)."""
+    not_a_repo = tmp_path / "plain"
+    not_a_repo.mkdir()
+    proc = run(not_a_repo, terms_file(tmp_path))
+    assert proc.returncode == 2, proc.stdout
+    assert "CLEAN" not in proc.stdout
+
+
+def test_empty_terms_list_errors(tmp_path):
+    repo = make_repo(tmp_path, CLEAN_TEXT)
+    empty = tmp_path / "empty.txt"
+    empty.write_text("", encoding="utf-8")
+    proc = run(repo, empty)
+    assert proc.returncode == 2, proc.stdout

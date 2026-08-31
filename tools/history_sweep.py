@@ -26,9 +26,17 @@ TEXT_EXT = (".csv", ".jsonl", ".md", ".py", ".txt", ".sql", ".json", ".yml", ".y
             ".ts", ".tsx", ".js", ".html", ".css", ".env")
 
 
+class GitError(RuntimeError):
+    """git failed. A gate that swallows this would report a false CLEAN."""
+
+
 def run(repo: Path, args: list[str]) -> str:
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True,
-                          text=True, encoding="utf-8", errors="replace").stdout
+    proc = subprocess.run(["git", "-C", str(repo), *args], capture_output=True,
+                          text=True, encoding="utf-8", errors="replace")
+    if proc.returncode != 0:
+        raise GitError(f"git {' '.join(args[:2])} failed in {repo}: "
+                       f"{proc.stderr.strip().splitlines()[0] if proc.stderr.strip() else 'no stderr'}")
+    return proc.stdout
 
 
 def variants(term: str) -> set[str]:
@@ -87,7 +95,15 @@ def main() -> None:
     repo = Path(args.repo).resolve()
     terms = [t.strip() for t in Path(args.terms).read_text(encoding="utf-8").splitlines()
              if t.strip()]
-    blob_hits, msg_hits, n_blobs, n_variants = sweep(repo, terms)
+    if not terms:
+        print(f"[ERROR] the terms list {args.terms} is empty - nothing would be checked")
+        sys.exit(2)
+    try:
+        blob_hits, msg_hits, n_blobs, n_variants = sweep(repo, terms)
+    except GitError as exc:
+        # exit 2, never 0: a gate that cannot run must not look like a gate that passed
+        print(f"[ERROR] {exc}")
+        sys.exit(2)
 
     print(f"[*] {len(terms)} terms -> {n_variants} variants")
     print(f"[*] scanning {n_blobs} text blobs and every commit message in {repo.name}")

@@ -60,6 +60,9 @@ while the dataset text (transcriptions, catalog descriptions) stays Spanish and 
 > On Windows, start the backend with `python serve.py`, **not** `uvicorn ...` directly:
 > psycopg's async pool needs a selector event loop, which `serve.py` sets up.
 
+A step-by-step walkthrough of the five screens, written for someone using the app rather than
+reading its code, is in [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+
 ### Real mode
 
 Copy `.env.example` to `.env`, set `APP_MODE=real` and your `OPENAI_API_KEY` /
