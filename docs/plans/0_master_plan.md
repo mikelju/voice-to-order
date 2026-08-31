@@ -133,6 +133,8 @@ the repo **only** in anonymized form, with automated, repeatable verification.
       per-row dropdowns → finalize → delivery status lights (+ demo recording picker)
 - [x] Biar Tech branding (Voice-to-Order header + demo banner; ERP card "simulada")
 - [x] Build and test against the local backend (build clean; CORS-verified smoke)
+- [x] Bilingual UI chrome: `ES|EN` switcher, no new dependency; the Spanish dataset text
+      stays verbatim (`phase_5/5.1_ui_i18n.md`)
 
 ## Phase 6: Real mode + E2E
 

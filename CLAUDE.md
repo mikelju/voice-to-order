@@ -80,7 +80,7 @@ precomputed embeddings. In real mode, everything live. Provider selection is by 
 |------|-----------|-------|
 | Backend | Python 3.12+ / FastAPI | async end-to-end |
 | DB | PostgreSQL 16 + pgvector (HNSW) | Docker, `docker-compose.yml` |
-| Frontend | React + Vite + TypeScript + Tailwind | port of the original, no client branding |
+| Frontend | React + Vite + TypeScript + Tailwind | port of the original, no client branding; ES/EN UI i18n (5.1) |
 | Models (real mode) | whisper-1 · gemini-2.5-flash · text-embedding-3-small | user keys via `.env` |
 | Tests | pytest (backend/tools) | test-first per the framework |
 

@@ -53,7 +53,9 @@ cd src/frontend && npm install && npm run dev   # UI on http://localhost:5173
 ```
 
 Open the UI, pick one of the 47 recorded orders, and click through:
-**process → review candidates → finalize → send** (with three status lights).
+**process → review candidates → finalize → send** (with three status lights). The UI chrome
+is bilingual — an `ES|EN` toggle in the header, detected from the browser and remembered —
+while the dataset text (transcriptions, catalog descriptions) stays Spanish and verbatim.
 
 > On Windows, start the backend with `python serve.py`, **not** `uvicorn ...` directly:
 > psycopg's async pool needs a selector event loop, which `serve.py` sets up.
