@@ -164,6 +164,10 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 - [x] Publication readiness (2026-08-31): `LICENSE` (MIT for the code, CC BY-NC 4.0 for the
       dataset), the history sweep versioned as `tools/history_sweep.py` with tests, i18n
       parity enforced by tests, and no links to repositories that are not public
+- [x] Live repository re-created from the clean history (2026-08-31): a force-push leaves the
+      old objects reachable by SHA, so the repo itself was rebuilt. Pre-rewrite SHAs now 404;
+      CI green; the pre-rewrite repo is archived and private. **The repo is ready to be made
+      public — that switch is the author's, and nothing technical is blocking it.**
 
 ² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found a real
 end-customer company name in the pre-fix-1 commits. It was first accepted as a business risk

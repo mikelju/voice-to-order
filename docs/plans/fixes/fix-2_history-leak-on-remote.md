@@ -1,10 +1,10 @@
 # Fix 2: real term (end-customer company name) in git history — FIXED (history rewritten)
 
 > One-off corrective. Affects Phase 1 / Phase 7 (anonymization release gate).
-> **Status: FIXED — 2026-08-31.** The history was rewritten with `git filter-repo`; the
-> full-history sweep reports CLEAN and the rewritten `main` was force-pushed to `origin`
-> in the same session (immediately after this commit). This **supersedes the 2026-06-13
-> WON'T FIX decision** — see [Decision history](#decision-history).
+> **Status: FIXED — 2026-08-31.** The history was rewritten with `git filter-repo`, the
+> full-history sweep reports CLEAN, and the live repository was re-created from the clean
+> history so that not even unreachable pre-rewrite objects survive. This **supersedes the
+> 2026-06-13 WON'T FIX decision** — see [Decision history](#decision-history).
 >
 > **Redaction note (2026-08-31):** the real term is deliberately **not** written in this
 > file, nor anywhere else in the repo. Naming it here re-introduced the very leak this
@@ -86,21 +86,28 @@ and one subscriber (the author). No fork or third-party clone could retain the o
 4. **Restore the remote** (`filter-repo` removes `origin` by design) and **remap the SHAs
    quoted in the docs** from `.git/filter-repo/commit-map`.
 5. **Force-push** `main` with `--force-with-lease`.
+6. **Re-create the live repository** from the clean history, so no unreachable pre-rewrite
+   object survives where the repo will be published (see Residual exposure).
 
-## Residual exposure
+## Residual exposure — closed 2026-08-31
 
-A force-push does not delete anything on GitHub: the pre-rewrite commits became unreachable
-but are **still served by SHA** through the API and the web UI until GitHub's own garbage
-collection runs (verified on 2026-08-31 — the old commit SHAs still resolve). Consequences:
+A force-push deletes nothing on GitHub. The pre-rewrite commits became unreachable but were
+**still served by SHA** through the API and the web UI — verified right after the push: the
+old SHAs still resolved. A rewrite alone would therefore not have been enough to publish.
 
-- Exposure is bounded by repository access: the repo is **private**, so only accounts with
-  access can fetch those objects, and only if they know the SHA.
-- Therefore the pre-rewrite SHAs are **not written anywhere in this repo**. Publishing them
-  would hand a reader the exact pointer to the un-sanitized blob.
-- **Before making this repository public**, close this out by either asking GitHub Support to
-  garbage-collect the unreachable objects, or deleting and re-creating the repository from the
-  rewritten history (cheap here: no issues, no PRs, no forks, no stars). **Pending — author's
-  decision.**
+What closed it:
+
+1. The old repository was **renamed** to `voice-to-order-archive-pre-rewrite`, left
+   **private** and **archived** (read-only). It still holds the unreachable objects, and
+   nothing in it will ever be published.
+2. A **new, empty** `voice-to-order` repository was created and the rewritten history pushed
+   into it. A fresh repository cannot serve objects that were never pushed to it.
+3. **Verified:** in the live repository every pre-rewrite SHA now returns `404 No commit found
+   for SHA`, while the rewritten history resolves normally. CI is green on the new repo.
+
+Deleting the archived repository is optional cleanup (no issues, no PRs, no forks), not a
+prerequisite for publishing. The pre-rewrite SHAs are still deliberately absent from this
+document: they are pointers to objects that exist in that archive.
 
 ## Verification
 
@@ -131,4 +138,5 @@ collection runs (verified on 2026-08-31 — the old commit SHAs still resolve). 
 - `docs/plans/fixes/fix-2_history-leak-on-remote.md` — this file (won't-fix -> fixed)
 - `docs/plans/0_master_plan.md` — Phase 7 history-sweep item now closed
 - git history — rewritten (every SHA changed); pre-rewrite SHAs quoted in docs remapped
+- the GitHub repository — re-created from the clean history; the pre-rewrite one archived
 - (done, outside repo) `voice-to-order-replacements.txt`, `voice-to-order-terms.txt` — term added
