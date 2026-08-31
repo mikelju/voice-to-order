@@ -10,8 +10,8 @@ three channels. This replica removes the original's cloud dependencies (Google C
 Cloud, the client's ERP) and uses **real, anonymized data**; it runs with Docker + two commands.
 
 **For whom:** recruiters and technical reviewers who want to run and read the system described in
-[case study 06 of the portfolio](https://github.com/mikelju/llm-context-systems-portfolio); and as a
-Biar Tech demonstration base.
+case study 06 of the *LLM context systems* portfolio (published separately); and as a Biar Tech
+demonstration base.
 
 **Two modes:**
 - **Demo mode (default, no API keys):** transcription and extraction replay real recorded pairs
@@ -161,6 +161,9 @@ the repo **only** in anonymized form, with automated, repeatable verification.
       rewriting the history with `git filter-repo` (blobs + commit messages) and force-pushing;
       HEAD tree unchanged, 19/19 commits preserved. Details: `fixes/fix-2_history-leak-on-remote.md`.
 - [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
+- [x] Publication readiness (2026-08-31): `LICENSE` (MIT for the code, CC BY-NC 4.0 for the
+      dataset), the history sweep versioned as `tools/history_sweep.py` with tests, i18n
+      parity enforced by tests, and no links to repositories that are not public
 
 ² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found a real
 end-customer company name in the pre-fix-1 commits. It was first accepted as a business risk

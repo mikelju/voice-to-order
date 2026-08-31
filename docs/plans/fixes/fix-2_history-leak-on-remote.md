@@ -119,9 +119,11 @@ collection runs (verified on 2026-08-31 — the old commit SHAs still resolve). 
   `regex:` line written with CRLF endings; it exited 0, printed "New history written", and
   changed nothing (HEAD kept its SHA — the tell). Rewriting with one *literal* line per
   variant and LF endings worked. Never trust the exit code here: verify with the sweep.
-- **`history_sweep.py` is release-gate tooling living in `.tmp/`** (untracked) and mislabels
-  variants as terms. It should move to `tools/` with the label fixed, so the gate is
-  reproducible by anyone and its output is not misread. **Pending.**
+- **Release-gate tooling must be versioned.** `history_sweep.py` lived in `.tmp/`
+  (untracked) and mislabelled variants as terms — which is how this document's inventory
+  came to claim two real names when there was one. Fixed 2026-08-31: it is now
+  `tools/history_sweep.py`, with the label corrected, commit messages swept as well as
+  blobs, output that never prints a matched term, and six tests.
 - **Documenting a leak by quoting it re-creates it.** See the redaction note above.
 
 ## Modified files

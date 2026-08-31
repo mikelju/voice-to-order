@@ -7,8 +7,8 @@ order; the system transcribes it, extracts the lines with an LLM, matches each l
 human reviews and corrects, and the order is delivered over three independent channels.
 
 It runs with **Docker + two commands**, on **real anonymized data**, with **no cloud
-dependencies**. Built as the runnable companion to
-[case study 06 of the portfolio](https://github.com/mikelju/llm-context-systems-portfolio).
+dependencies**. Built as the runnable companion to case study 06 of the *LLM context systems*
+portfolio (published separately).
 
 > ⚠️ **Local-only by design.** There is no authentication (it binds to `127.0.0.1`). Do not
 > expose it to a network without adding auth and rate limiting — real mode spends real API
@@ -121,9 +121,14 @@ Full design: [docs/plans/](docs/plans/) and the case study.
 ## Tests
 
 ```bash
-pytest                                       # 117 passed, 1 skipped (real-mode opt-in)
+pytest                                       # 128 passed, 1 skipped (real-mode opt-in)
 python tools/verify_anonymization.py         # anonymization gate over data/ (structural)
+python tools/history_sweep.py --terms <file> # real-terms sweep over the WHOLE git history
 ```
+
+The last one takes the real-terms list, which is deliberately not in this repo — it is the
+author's pre-publication gate, and it reports *where* a term appears without ever printing
+it. `data/`-touching changes run the first two; a publication runs all three.
 
 DB-backed tests skip cleanly when the database is not up, so the suite stays green without
 Docker. CI runs the suite + the anonymization gate + a dependency scan on every push
@@ -152,3 +157,10 @@ docs/plans/     spec-driven phase docs                   docs/security/ audit re
 
 Built with a spec-driven workflow (SDD): every phase has a spec, a plan and tests. See
 [docs/plans/0_master_plan.md](docs/plans/0_master_plan.md).
+
+---
+
+## License
+
+Code: [MIT](LICENSE). Dataset in `data/`: CC BY-NC 4.0, for evaluation and research, with
+re-identification expressly disallowed — see [LICENSE](LICENSE) for both.
