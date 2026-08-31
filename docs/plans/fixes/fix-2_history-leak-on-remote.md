@@ -1,14 +1,10 @@
-# Fix 2: real term (end-customer company name) in public git history — RISK ACCEPTED by the author
+# Fix 2: real term (end-customer company name) in git history — FIXED (history rewritten)
 
-> One-off corrective. Affects Phase 1/Phase 7 (anonymization release gate).
-> **Status: WON'T FIX (accepted risk). 2026-06-13 — the author reviewed the finding and
-> decided the exposure is acceptable: the term is a company name (not personal data;
-> person names and phone numbers WERE sanitized by fix-1), and rewriting public history
-> is not worth the cost here. No history rewrite / force-push will be performed.**
->
-> The working tree stays clean (the term is in the external replacements/terms lists, so
-> any dataset regeneration re-sanitizes it). Recorded for traceability per the framework's
-> "explicit decision to defer with justification" rule.
+> One-off corrective. Affects Phase 1 / Phase 7 (anonymization release gate).
+> **Status: FIXED — 2026-08-31.** The history was rewritten with `git filter-repo`; the
+> full-history sweep reports CLEAN and the rewritten `main` was force-pushed to `origin`
+> in the same session (immediately after this commit). This **supersedes the 2026-06-13
+> WON'T FIX decision** — see [Decision history](#decision-history).
 >
 > **Redaction note (2026-08-31):** the real term is deliberately **not** written in this
 > file, nor anywhere else in the repo. Naming it here re-introduced the very leak this
@@ -19,81 +15,118 @@
 ## Bug description
 
 The Phase-7 git-history sweep (every blob in every commit, not just HEAD) found a real
-end-customer company name — deliberately not reproduced here (see the external terms
-list) — inside `data/catalog.csv` in two commits:
+end-customer company name inside `data/catalog.csv` in the pre-fix-1 commits. The working
+tree (HEAD) was already clean — fix-1 sanitized those rows and regenerated the dataset —
+but the pre-fix-1 blob still lived in history. This is exactly known-gotcha #1
+(`CLAUDE.md`): "a real term committed and later deleted remains in history."
 
-- `c5a2e30` — "Phase 1: anonymized dataset + verification gate"
-- `e295387` — "Phase 2: local Postgres+pgvector ..."
+**Full inventory, measured per term on 2026-08-31.** Pre-rewrite SHAs are deliberately
+**not listed here**: those objects are unreachable but still served by GitHub until its
+own gc runs (see [Residual exposure](#residual-exposure)), so a SHA in a public file is a
+direct pointer to the leaked blob.
 
-The working tree (HEAD) is clean: fix-1 sanitized those rows and regenerated the dataset.
-But the **pre-fix-1 blob still lives in history**, and both commits are ancestors of
-`origin/main` (`fbbe73e` = fix-1). Confirmed:
+| Where | Scope |
+|---|---|
+| `data/catalog.csv` (blob) | 1 term, 2 case variants, 4 occurrences · the Phase-1 and Phase-2 commits (pre-fix-1) |
+| `0_master_plan.md`, `fix-2_*.md` (blobs) | same term · the two Phase-7 closure commits and the i18n commit |
+| Commit messages | Phase-7 closure commit (subject + body), Phase-7 release-gate commit (body) |
+| Working tree at HEAD | clean (since the redaction commit) |
 
-```
-git ls-remote --heads origin   ->  fbbe73e ... refs/heads/main
-git merge-base --is-ancestor c5a2e30 fbbe73e  ->  true
-git merge-base --is-ancestor e295387 fbbe73e  ->  true
-```
+Two corrections to the original 2026-06-13 write-up:
 
-So the leak is **already on the remote** `github.com/mikelju/voice-to-order.git`, not just
-local. This is exactly known-gotcha #1 (`CLAUDE.md`): "a real term committed and later
-deleted remains in history."
+1. **It was one term, not two.** `.tmp/history_sweep.py` counts *variants* but labels them
+   `term(s)`, so its `catalog.csv: 2 term(s)` line read as two distinct real names. They
+   were two case variants of the same one.
+2. **The scope had grown.** The 2026-06-13 note described two commits carrying one CSV
+   blob. By 2026-08-31 the fix-2 document itself had spread the term to two more `.md`
+   files across three more commits, plus two commit messages — the document reporting the
+   leak had become the largest carrier of it.
 
 ## Root cause
 
 fix-1 corrected the working tree and reloaded the DB, but did not rewrite history; the
-leaked commits had already been pushed (the remote was at fix-1, which descends from the
-Phase-1/2 commits). The pre-push history sweep that would have caught this (Phase 7, Step 5)
-ran only now — after those commits were public.
+leaked commits had already been pushed. The pre-push history sweep that would have caught
+this (Phase 7, Step 5) ran only after those commits were on the remote.
 
 ## Impact
 
-The leaked term is a real company name (an end customer of the original client) — precisely what
-the anonymization exists to remove. While public, anyone can read it in the repo's history,
-and GitHub may have cached/indexed the old commits; existing clones/forks retain them.
+The leaked term is a real company name (an end customer of the original client) — precisely
+what the anonymization exists to remove. Exposure was bounded: the GitHub repository has
+been **private** since creation (`2026-06-11`), with `forks_count: 0`, `network_count: 0`
+and one subscriber (the author). No fork or third-party clone could retain the old objects.
 
-## Adopted solution — NOT YET APPLIED (needs author go-ahead)
+## Decision history
 
-Because remediation is **destructive** (rewrites every SHA) and **outward-facing** (force-push
-to a public remote), it is not run autonomously. Recommended steps, in order:
+1. **2026-06-13 — WON'T FIX (risk accepted).** Rationale: the term is a company name, not
+   personal data (fix-1 had already sanitized person names and phone numbers), and
+   "rewriting *public* history is not worth the cost".
+2. **2026-08-31 — reopened and fixed.** The premise of that decision did not hold: the
+   remote was never public, and with zero forks a rewrite costs one command and reaches
+   every copy that exists. Meanwhile the scope had grown (see the inventory above) and the
+   repo's whole purpose is to eventually *be* published — which would have published the
+   history along with it. Author's decision: rewrite and force-push.
 
-1. **Decide repo visibility now.** If the GitHub repo is public, consider making it private
-   until remediated (reduces exposure window). Confirm whether it was ever forked.
-2. **Add the term to the external replacements + terms lists** (done already:
-   `portfolio-private/voice-to-order-replacements.txt` and `-terms.txt`) so the working-tree
-   gate stays clean and any regeneration re-sanitizes it.
-3. **Rewrite history** so the leaked blob never appears. Cleanest given the dataset is a
-   generated artifact: replace `data/catalog.csv` in every commit with the sanitized version,
-   e.g. with `git filter-repo`:
+## Adopted solution — APPLIED 2026-08-31
+
+1. **Backups first:** `git bundle create <scratchpad>/vto-pre-rewrite.bundle --all` (20 MB,
+   full pre-rewrite history) plus a `backup/pre-history-rewrite` branch.
+2. **Redact the working tree first** (the redaction commit) so the rewrite had a clean HEAD
+   to converge on.
+3. **Rewrite** with `git filter-repo`, applying the same replacement file to blob contents
+   and to commit messages:
    ```bash
-   # back up first
-   git branch backup/pre-history-rewrite
-   # replace the leaked content across all commits (sanitized file = current HEAD version)
-   git filter-repo --path data/catalog.csv --replace-text <(echo "<real-term>==>[customer]")
-   #   or, simpler and equally valid here: re-create the branch from a clean root
-   #   (the SDD narrative can be preserved by re-committing the phase docs unchanged).
+   pip install git-filter-repo            # local tool, not a project dependency
+   python -m git_filter_repo \
+       --replace-text  <file> \           # one "<variant>==>[customer]" line per variant
+       --replace-message <file> \         # same file: also sanitizes commit messages
+       --force
    ```
-   Verify with the history sweep until it is clean:
-   ```bash
-   python tools/verify_anonymization.py --repo . --terms <external terms>
-   python .tmp/history_sweep.py <external terms>   # must report CLEAN
-   ```
-4. **Force-push** the rewritten history (`git push --force-with-lease origin main`) — ONLY
-   after the author approves (this is the single ASK-FIRST, irreversible step).
-5. **Post-rewrite remote hygiene:** the old commits may persist on GitHub until garbage
-   collected; consider contacting GitHub support to purge cached views, and rotate anything
-   else that touched those commits. Document the outcome here.
+   The replacement file is generated from the external terms list, lives outside the repo,
+   and was deleted afterwards.
+4. **Restore the remote** (`filter-repo` removes `origin` by design) and **remap the SHAs
+   quoted in the docs** from `.git/filter-repo/commit-map`.
+5. **Force-push** `main` with `--force-with-lease`.
 
-## Verification of the rest
+## Residual exposure
 
-Everything else is green and does not depend on this fix:
-- working-tree `--terms` sweep: 17 checks, 0 FAIL
-- structural anonymization gate: 15/15
-- test suite: 117 passed, 1 skipped
-- demo + real E2E: verified
+A force-push does not delete anything on GitHub: the pre-rewrite commits became unreachable
+but are **still served by SHA** through the API and the web UI until GitHub's own garbage
+collection runs (verified on 2026-08-31 — the old commit SHAs still resolve). Consequences:
+
+- Exposure is bounded by repository access: the repo is **private**, so only accounts with
+  access can fetch those objects, and only if they know the SHA.
+- Therefore the pre-rewrite SHAs are **not written anywhere in this repo**. Publishing them
+  would hand a reader the exact pointer to the un-sanitized blob.
+- **Before making this repository public**, close this out by either asking GitHub Support to
+  garbage-collect the unreachable objects, or deleting and re-creating the repository from the
+  rewritten history (cheap here: no issues, no PRs, no forks, no stars). **Pending — author's
+  decision.**
+
+## Verification
+
+| Check | Result |
+|---|---|
+| `.tmp/history_sweep.py` over all blobs | **CLEAN** — no real term in any blob of any commit |
+| `verify_anonymization.py --repo . --terms <external>` | 17 checks, **0 FAIL** |
+| Structural gate (CI-runnable) | 15 checks, 0 FAIL |
+| HEAD tree hash, pre vs post rewrite | identical (`7b5ce50`) — no working-tree content changed |
+| Commit count | 19 before, 19 after — no commit dropped |
+| Test suite | 117 passed, 1 skipped |
+
+## Operational lessons
+
+- **A silent no-op looks exactly like success.** The first `filter-repo` run used a
+  `regex:` line written with CRLF endings; it exited 0, printed "New history written", and
+  changed nothing (HEAD kept its SHA — the tell). Rewriting with one *literal* line per
+  variant and LF endings worked. Never trust the exit code here: verify with the sweep.
+- **`history_sweep.py` is release-gate tooling living in `.tmp/`** (untracked) and mislabels
+  variants as terms. It should move to `tools/` with the label fixed, so the gate is
+  reproducible by anyone and its output is not misread. **Pending.**
+- **Documenting a leak by quoting it re-creates it.** See the redaction note above.
 
 ## Modified files
 
-- `docs/plans/0_master_plan.md` — Phase 7 marked Blocked; this fix referenced
-- (pending) git history — to be rewritten on author go-ahead
+- `docs/plans/fixes/fix-2_history-leak-on-remote.md` — this file (won't-fix -> fixed)
+- `docs/plans/0_master_plan.md` — Phase 7 history-sweep item now closed
+- git history — rewritten (every SHA changed); pre-rewrite SHAs quoted in docs remapped
 - (done, outside repo) `voice-to-order-replacements.txt`, `voice-to-order-terms.txt` — term added

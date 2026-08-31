@@ -76,7 +76,7 @@ docs/plans/
 | 4 | Precomputed embeddings (needs an API key — decision pending) | Done | Done¹ |
 | 5 | React frontend | Done | Done¹ |
 | 6 | Real mode (live Whisper + Gemini) + E2E | Done | Done |
-| 7 | Security audit + public README + release gate | Done | Done² (history leak: risk accepted) |
+| 7 | Security audit + public README + release gate | Done | Done² (history leak: fixed) |
 
 ---
 
@@ -155,19 +155,19 @@ the repo **only** in anonymized form, with automated, repeatable verification.
 - [x] Final anonymization verification (`--terms`): working tree CLEAN (17 checks, 0 FAIL,
       28 terms / 97 variants over 147 files; re-verified 2026-08-31 after redacting the
       leaked term from this file and from fix-2 — see that file's redaction note)
-- [!] git-history sweep: **FAILS** — `data/catalog.csv` in commits `c5a2e30` (Phase 1) and
-      `e295387` (Phase 2) still contains a real end-customer company name (pre-fix-1).
-      **Both commits are already on the public remote** (`origin/main` = `fbbe73e` = fix-1,
-      a descendant).
-      This is a publish blocker that needs the author's decision (see fix-2 / §Fixes). The
-      structural gate and the working-tree `--terms` sweep are clean; only the history leaks.
+- [x] git-history sweep: **CLEAN** (2026-08-31). It first FAILED — the pre-fix-1
+      `data/catalog.csv` carried a real end-customer company name, and the fix-2 write-up had
+      since spread the same term to two `.md` files and two commit messages. Remediated by
+      rewriting the history with `git filter-repo` (blobs + commit messages) and force-pushing;
+      HEAD tree unchanged, 19/19 commits preserved. Details: `fixes/fix-2_history-leak-on-remote.md`.
 - [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
 
 ² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found a real
-end-customer company name in pre-fix-1 commits already on the remote; the author reviewed it
-and **accepted the risk** (company name, not personal data — fix-1 had already sanitized person
-names and phones). No history rewrite is performed. Decision recorded in
-`docs/plans/fixes/fix-2_history-leak-on-remote.md`.
+end-customer company name in the pre-fix-1 commits. It was first accepted as a business risk
+(2026-06-13) on the premise that the remote was public and a rewrite would not pay off; that
+premise was wrong — the repo has been private since creation, with zero forks — so on
+2026-08-31 the history was **rewritten and force-pushed** instead. Sweep now CLEAN. Full
+account in `docs/plans/fixes/fix-2_history-leak-on-remote.md`.
 
 ---
 
@@ -176,6 +176,6 @@ names and phones). No history rewrite is performed. Decision recorded in
 - `fixes/fix-1_contact-rows-leak.md` — CONTACTO admin rows leaked names/phones in `data/`
   (working tree); fixed before Phase 3, dataset regenerated and reloaded.
 - `fixes/fix-2_history-leak-on-remote.md` — the pre-fix-1 `catalog.csv` (with an un-sanitized
-  end-customer name) reached the **public git history** (commits already on `origin/main`).
-  **Risk accepted by the author** (company name, not personal data); no history rewrite
-  performed.
+  end-customer name) reached the git history, and the fix-2 document itself later spread the
+  term further. **Fixed 2026-08-31**: history rewritten with `git filter-repo` (blobs + commit
+  messages) and force-pushed; full-history sweep CLEAN. Supersedes the earlier won't-fix.

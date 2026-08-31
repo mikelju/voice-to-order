@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-17
 **Auditor:** audit-code skill (Claude Code)
-**Scope:** full release-gate audit — `src/backend/` (all), `tools/` (all), `src/frontend/src/` (all), `serve.py`, `requirements.txt`, `src/frontend/package.json`. Commit `bf87ed8`.
+**Scope:** full release-gate audit — `src/backend/` (all), `tools/` (all), `src/frontend/src/` (all), `serve.py`, `requirements.txt`, `src/frontend/package.json`. Commit `5729823`.
 **Threat model:** local-only developer tool / public portfolio repo. No authentication by design (documented anti-goal). The two real assets to protect are (a) the owner's API keys / quota in real mode, and (b) the anonymization guarantee (no real client/site/part numbers reach the public git history). Server is bound to `127.0.0.1` by `serve.py`.
 **Stack:** Python 3.13 / FastAPI 0.136 / Starlette 1.2 / psycopg3 + pgvector; React 19 / Vite 6 / TypeScript; reportlab 4.5; OpenAI 2.41 + google-genai 2.8 (real mode).
 
@@ -352,7 +352,7 @@ This is Phase 7, Step 5 in [docs/plans/phase_7/7.0_audit_release_gate.md](docs/p
 - OWASP Top 10 applicable categories: covered.
 
 ### Caveats
-- Reflects commit `bf87ed8` plus the uncommitted Phase-7 docs. Later changes are not covered.
+- Reflects commit `5729823` plus the uncommitted Phase-7 docs. Later changes are not covered.
 - Business-logic correctness was assessed from code/docstrings; the anonymization *completeness* depends on the external terms list and is gated by OBS-001, not provable from inside the repo.
 
 ---
