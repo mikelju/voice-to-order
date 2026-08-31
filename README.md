@@ -124,7 +124,7 @@ Full design: [docs/plans/](docs/plans/) and the case study.
 ## Tests
 
 ```bash
-pytest                                       # 128 passed, 1 skipped (real-mode opt-in)
+pytest                                       # 130 passed, 1 skipped (real-mode opt-in)
 python tools/verify_anonymization.py         # anonymization gate over data/ (structural)
 python tools/history_sweep.py --terms <file> # real-terms sweep over the WHOLE git history
 ```
