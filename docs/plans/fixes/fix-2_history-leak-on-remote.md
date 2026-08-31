@@ -1,19 +1,26 @@
-# Fix 2: real term ("[customer]") in public git history — RISK ACCEPTED by the author
+# Fix 2: real term (end-customer company name) in public git history — RISK ACCEPTED by the author
 
 > One-off corrective. Affects Phase 1/Phase 7 (anonymization release gate).
 > **Status: WON'T FIX (accepted risk). 2026-06-13 — the author reviewed the finding and
-> decided the exposure is acceptable: "[customer]" is a company name (not personal data;
+> decided the exposure is acceptable: the term is a company name (not personal data;
 > person names and phone numbers WERE sanitized by fix-1), and rewriting public history
 > is not worth the cost here. No history rewrite / force-push will be performed.**
 >
 > The working tree stays clean (the term is in the external replacements/terms lists, so
 > any dataset regeneration re-sanitizes it). Recorded for traceability per the framework's
 > "explicit decision to defer with justification" rule.
+>
+> **Redaction note (2026-08-31):** the real term is deliberately **not** written in this
+> file, nor anywhere else in the repo. Naming it here re-introduced the very leak this
+> document reports (it broke the `--terms` release gate: 1 FAIL over `0_master_plan.md`
+> and this file). It lives only in the external terms/replacements lists
+> (`portfolio-private/`). Below it is called "the leaked term".
 
 ## Bug description
 
 The Phase-7 git-history sweep (every blob in every commit, not just HEAD) found a real
-end-customer company name, **"[customer]"**, inside `data/catalog.csv` in two commits:
+end-customer company name — deliberately not reproduced here (see the external terms
+list) — inside `data/catalog.csv` in two commits:
 
 - `c5a2e30` — "Phase 1: anonymized dataset + verification gate"
 - `e295387` — "Phase 2: local Postgres+pgvector ..."
@@ -41,7 +48,7 @@ ran only now — after those commits were public.
 
 ## Impact
 
-"[customer]" is a real company name (an end customer of the original client) — precisely what
+The leaked term is a real company name (an end customer of the original client) — precisely what
 the anonymization exists to remove. While public, anyone can read it in the repo's history,
 and GitHub may have cached/indexed the old commits; existing clones/forks retain them.
 
@@ -52,7 +59,7 @@ to a public remote), it is not run autonomously. Recommended steps, in order:
 
 1. **Decide repo visibility now.** If the GitHub repo is public, consider making it private
    until remediated (reduces exposure window). Confirm whether it was ever forked.
-2. **Add "[customer]" to the external replacements + terms lists** (done already:
+2. **Add the term to the external replacements + terms lists** (done already:
    `portfolio-private/voice-to-order-replacements.txt` and `-terms.txt`) so the working-tree
    gate stays clean and any regeneration re-sanitizes it.
 3. **Rewrite history** so the leaked blob never appears. Cleanest given the dataset is a
@@ -62,7 +69,7 @@ to a public remote), it is not run autonomously. Recommended steps, in order:
    # back up first
    git branch backup/pre-history-rewrite
    # replace the leaked content across all commits (sanitized file = current HEAD version)
-   git filter-repo --path data/catalog.csv --replace-text <(echo "[customer]==>[customer]")
+   git filter-repo --path data/catalog.csv --replace-text <(echo "<real-term>==>[customer]")
    #   or, simpler and equally valid here: re-create the branch from a clean root
    #   (the SDD narrative can be preserved by re-committing the phase docs unchanged).
    ```
@@ -89,4 +96,4 @@ Everything else is green and does not depend on this fix:
 
 - `docs/plans/0_master_plan.md` — Phase 7 marked Blocked; this fix referenced
 - (pending) git history — to be rewritten on author go-ahead
-- (done, outside repo) `voice-to-order-replacements.txt`, `voice-to-order-terms.txt` — "[customer]" added
+- (done, outside repo) `voice-to-order-replacements.txt`, `voice-to-order-terms.txt` — term added

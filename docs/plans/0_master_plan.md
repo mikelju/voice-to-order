@@ -151,17 +151,19 @@ the repo **only** in anonymized form, with automated, repeatable verification.
       (0 Critical, 0 High; Medium/Low hardening applied — SEC-001..004)
 - [x] Recruiter-oriented public README (2-command quickstart, what is real, link to case study 06)
 - [x] Final anonymization verification (`--terms`): working tree CLEAN (17 checks, 0 FAIL,
-      28 terms / 97 variants over 145 files)
+      28 terms / 97 variants over 147 files; re-verified 2026-08-31 after redacting the
+      leaked term from this file and from fix-2 — see that file's redaction note)
 - [!] git-history sweep: **FAILS** — `data/catalog.csv` in commits `c5a2e30` (Phase 1) and
-      `e295387` (Phase 2) still contains the real term "[customer]" (pre-fix-1). **Both commits
-      are already on the public remote** (`origin/main` = `fbbe73e` = fix-1, a descendant).
+      `e295387` (Phase 2) still contains a real end-customer company name (pre-fix-1).
+      **Both commits are already on the public remote** (`origin/main` = `fbbe73e` = fix-1,
+      a descendant).
       This is a publish blocker that needs the author's decision (see fix-2 / §Fixes). The
       structural gate and the working-tree `--terms` sweep are clean; only the history leaks.
 - [x] Basic CI (`.github/workflows/ci.yml`: tests + anonymization gate + pip-audit + frontend build)
 
-² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found the real
-term "[customer]" in pre-fix-1 commits already on the remote; the author reviewed it and
-**accepted the risk** (company name, not personal data — fix-1 had already sanitized person
+² Phase 7 complete; suite green (117 passed, 1 skipped). The git-history sweep found a real
+end-customer company name in pre-fix-1 commits already on the remote; the author reviewed it
+and **accepted the risk** (company name, not personal data — fix-1 had already sanitized person
 names and phones). No history rewrite is performed. Decision recorded in
 `docs/plans/fixes/fix-2_history-leak-on-remote.md`.
 
@@ -171,6 +173,7 @@ names and phones). No history rewrite is performed. Decision recorded in
 
 - `fixes/fix-1_contact-rows-leak.md` — CONTACTO admin rows leaked names/phones in `data/`
   (working tree); fixed before Phase 3, dataset regenerated and reloaded.
-- `fixes/fix-2_history-leak-on-remote.md` — the pre-fix-1 `catalog.csv` (with "[customer]")
-  reached the **public git history** (commits already on `origin/main`). **Risk accepted by
-  the author** (company name, not personal data); no history rewrite performed.
+- `fixes/fix-2_history-leak-on-remote.md` — the pre-fix-1 `catalog.csv` (with an un-sanitized
+  end-customer name) reached the **public git history** (commits already on `origin/main`).
+  **Risk accepted by the author** (company name, not personal data); no history rewrite
+  performed.
