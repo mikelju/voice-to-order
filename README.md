@@ -7,8 +7,10 @@ order; the system transcribes it, extracts the lines with an LLM, matches each l
 human reviews and corrects, and the order is delivered over three independent channels.
 
 It runs with **Docker + two commands**, on **real anonymized data**, with **no cloud
-dependencies**. Built as the runnable companion to case study 06 of the *LLM context systems*
-portfolio (published separately).
+dependencies**. Built as the runnable companion to
+[**case study 06**](https://github.com/mikelju/llm-context-systems-portfolio/tree/main/case-studies/06-voice-to-order)
+of the [LLM context systems portfolio](https://github.com/mikelju/llm-context-systems-portfolio),
+which documents the architecture, the production decisions and the measured numbers behind it.
 
 > ⚠️ **Local-only by design.** There is no authentication (it binds to `127.0.0.1`). Do not
 > expose it to a network without adding auth and rate limiting — real mode spends real API
