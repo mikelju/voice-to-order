@@ -8,7 +8,7 @@ human reviews and corrects, and the order is delivered over three independent ch
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/mikelju/mikelju/main/voice-to-order-architecture.jpg" alt="Voice-to-Order architecture" width="100%" />
+<img src="https://raw.githubusercontent.com/mikelju/voice-to-order/main/docs/voice-to-order-architecture.svg" alt="Voice-to-Order architecture" width="100%" />
 
 </div>
 
