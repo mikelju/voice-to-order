@@ -6,6 +6,12 @@ order; the system transcribes it, extracts the lines with an LLM, matches each l
 **~31,000-row catalog and a learned memory** (pgvector / HNSW vector search + re-ranking), a
 human reviews and corrects, and the order is delivered over three independent channels.
 
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/mikelju/mikelju/main/voice-to-order-architecture.jpg" alt="Voice-to-Order architecture" width="100%" />
+
+</div>
+
 It runs with **Docker + two commands**, on **real anonymized data**, with **no cloud
 dependencies**. Built as the runnable companion to
 [**case study 06**](https://github.com/mikelju/llm-context-systems-portfolio/tree/main/case-studies/06-voice-to-order)
