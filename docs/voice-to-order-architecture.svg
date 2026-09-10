@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="682" viewBox="0 0 2048 682">
+<rect width="2048" height="682" fill="#ffffff"/>
+<g font-family="Arial, Helvetica, sans-serif" fill="#152a4a">
+<text x="1024" y="86" text-anchor="middle" font-size="58" font-weight="700">Voice-to-Order</text>
+<text x="1024" y="128" text-anchor="middle" font-size="25" fill="#71809b">Voice message → confirmed order → learning from every confirmation</text>
+<rect x="18" y="214" width="272" height="320" rx="18" fill="#f4f8ff" stroke="#c7d8f8" stroke-width="2"/>
+<rect x="304" y="214" width="326" height="320" rx="18" fill="#faf7ff" stroke="#ded5fb" stroke-width="2"/>
+<rect x="644" y="214" width="520" height="320" rx="18" fill="#f2fbf7" stroke="#c9e9d8" stroke-width="2"/>
+<rect x="1178" y="214" width="252" height="320" rx="18" fill="#fffaf0" stroke="#f4dfab" stroke-width="2"/>
+<rect x="1444" y="214" width="270" height="320" rx="18" fill="#f4f8ff" stroke="#c7d8f8" stroke-width="2"/>
+<rect x="1728" y="214" width="302" height="320" rx="18" fill="#fff5f6" stroke="#f0ced4" stroke-width="2"/>
+<g font-size="25" font-weight="700">
+<text x="43" y="256" fill="#1e64c8">1. INPUT</text><text x="329" y="256" fill="#6c45c9">2. UNDERSTAND</text><text x="669" y="256" fill="#168a4b">3. RETRIEVE</text><text x="1203" y="256" fill="#c58906">4. CONFIRM</text><text x="1469" y="256" fill="#1e64c8">5. ACTION</text><text x="1753" y="256" fill="#c94a5a">6. LEARN</text>
+</g>
+<circle cx="154" cy="340" r="45" fill="#dceaff"/><text x="154" y="353" text-anchor="middle" font-size="34">◉</text>
+<circle cx="154" cy="442" r="45" fill="#dceaff"/><text x="154" y="453" text-anchor="middle" font-size="30">▰</text>
+<text x="154" y="492" text-anchor="middle" font-size="24" font-weight="700">Voice / Text</text>
+<rect x="334" y="310" width="266" height="76" rx="14" fill="#eee7ff" stroke="#a98cf2" stroke-width="2"/><text x="467" y="356" text-anchor="middle" font-size="22" font-weight="700">Speech-to-text</text>
+<rect x="334" y="412" width="266" height="76" rx="14" fill="#eee7ff" stroke="#a98cf2" stroke-width="2"/><text x="467" y="458" text-anchor="middle" font-size="22" font-weight="700">LLM extraction</text>
+<rect x="674" y="300" width="208" height="92" rx="14" fill="#def5e8" stroke="#69c38f" stroke-width="2"/><text x="778" y="335" text-anchor="middle" font-size="21" font-weight="700">Learned</text><text x="778" y="362" text-anchor="middle" font-size="21" font-weight="700">memory</text>
+<rect x="674" y="420" width="208" height="74" rx="14" fill="#def5e8" stroke="#69c38f" stroke-width="2"/><text x="778" y="465" text-anchor="middle" font-size="21" font-weight="700">Product catalogue</text>
+<rect x="932" y="352" width="194" height="92" rx="14" fill="#dff2ff" stroke="#78b1ec" stroke-width="2"/><text x="1029" y="388" text-anchor="middle" font-size="21" font-weight="700">Rerank</text><text x="1029" y="417" text-anchor="middle" font-size="18" fill="#71809b">Best matches</text>
+<circle cx="1304" cy="354" r="44" fill="#fff0bf"/><text x="1304" y="364" text-anchor="middle" font-size="34">●</text><text x="1304" y="435" text-anchor="middle" font-size="22" font-weight="700">Human</text><text x="1304" y="463" text-anchor="middle" font-size="22" font-weight="700">validation</text>
+<rect x="1470" y="340" width="218" height="102" rx="16" fill="#dff2ff" stroke="#78b1ec" stroke-width="2"/><text x="1579" y="380" text-anchor="middle" font-size="22" font-weight="700">Create</text><text x="1579" y="408" text-anchor="middle" font-size="22" font-weight="700">business order</text><text x="1579" y="470" text-anchor="middle" font-size="17" fill="#71809b">ERP / API / business system</text>
+<rect x="1754" y="325" width="250" height="118" rx="16" fill="#ffe4e7" stroke="#e18b96" stroke-width="2"/><text x="1879" y="364" text-anchor="middle" font-size="22" font-weight="700">Confirmed order</text><text x="1879" y="397" text-anchor="middle" font-size="22" font-weight="700">→ memory</text><text x="1879" y="462" text-anchor="middle" font-size="17" fill="#71809b">Improves future matches</text>
+<g stroke="#6b7f9e" stroke-width="4" fill="none"><path d="M290 374 H304"/><path d="M630 374 H644"/><path d="M1164 374 H1178"/><path d="M1430 374 H1444"/><path d="M1714 374 H1728"/><path d="M882 346 H932"/><path d="M882 456 H900 V396 H932"/><path d="M2004 443 V598 H778 V494" stroke-dasharray="12 10"/></g>
+<text x="1180" y="585" text-anchor="middle" font-size="20" fill="#71809b">confirmed orders feed the memory → future retrieval improves</text>
+</g></svg>
